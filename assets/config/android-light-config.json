@@ -1,0 +1,19 @@
+{
+  "statusBarColor": "#ff0000",
+  "isStatusBarDarkColor":false,
+  "navBackIcon": "",
+  "isHideBackIcon": false,
+  "navBackgroundColor": "#ff0000",
+  "navHeight": 18,
+  "navTitle": "登录默语共鸣",
+  "navTitleSize": 12,
+  "isNavTitleBold": false,
+  "maskNumberColor": "#ff0000",
+  "maskNumberSize": 14,
+  "loginBtnText": "确定登录",
+  "privacyTextColor": "#ff0000",
+  "privacyState": true,
+  "isHidePrivacySmh": true,
+  "protocolText": "用户协议",
+  "protocol2Text": "隐私协议"
+}
