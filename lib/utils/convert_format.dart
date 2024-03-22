@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
+import 'package:moyugongming/utils/log_util.dart';
 
 enum ImageFormat {
   YUV_420,
@@ -8,7 +10,9 @@ enum ImageFormat {
 
 class FormatConvert {
 
-  static Uint8List convertUint8List(CameraImage image) {
+  static Future<Uint8List> convertUint8List(CameraImage image) {
+    Completer<Uint8List> completer = Completer<Uint8List>();
+
     // 获取图像数据
     List<Plane> planes = image.planes;
     Uint8List yPlaneBytes = planes[0].bytes;
@@ -17,7 +21,6 @@ class FormatConvert {
 
     int width = image.width;
     int height = image.height;
-
 
     // 根据不同的图像格式进行处理
     if (image.format.group == ImageFormatGroup.yuv420) {
@@ -40,8 +43,8 @@ class FormatConvert {
       Uint8List yuvBytes = Uint8List(totalSize);
       yuvBytes.setAll(0, yPlaneBytes);
       yuvBytes.setAll(ySize, uvBytes);
-
-      return yuvBytes;
+      completer.complete(yuvBytes);
+      return completer.future;
     } else if (image.format.group == ImageFormatGroup.bgra8888) {
       // BGRA_8888 格式
       Uint8List yuvBytes =
@@ -63,9 +66,13 @@ class FormatConvert {
         byteArray[i] = ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF);
       }
 
-      return byteArray;
+      completer.complete(byteArray);
+      return completer.future;
     } else {
       throw Exception('Unsupported image format');
     }
+
+
+
   }
 }

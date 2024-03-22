@@ -334,7 +334,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (userInfo != null) {
                             userInfo['token'] = token;
                             userInfo['phoneNumber'] = phoneNumber;
-                            _saveUserInfo(userInfo: userInfo);
+                            await _saveUserInfo(userInfo: userInfo);
                             _revertToProfile(userInfo['userName']);
                           }
                         });
@@ -347,7 +347,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (userInfo != null) {
                             userInfo['token'] = token;
                             userInfo['phoneNumber'] = phoneNumber;
-                            _saveUserInfo(userInfo: userInfo);
+                            await _saveUserInfo(userInfo: userInfo);
                             _revertToProfile(userInfo['userName']);
                           }
                         });
@@ -445,7 +445,7 @@ class _LoginScreenState extends State<LoginScreen> {
     String basePath = "user/sendSMS";
     String path = "$basePath?phoneNumber=$phoneNumber";
     Map<String, String> headers = {'Content-Type': 'application/json'};
-    HttpClientUtils.sendRequest(path, method: HttpMethod.POST, headers: headers,
+    HttpClientUtils.sendRequestAsync(path, method: HttpMethod.POST, headers: headers,
         onSuccess: (response) {
       if (kDebugMode) {
         print('Request succeeded: $response');
@@ -485,7 +485,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     Completer<String> completer = Completer();
-    await HttpClientUtils.sendRequest(path,
+    await HttpClientUtils.sendRequestAsync(path,
         method: HttpMethod.POST,
         headers: headers,
         body: body, onSuccess: (response) async {
@@ -545,7 +545,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return null;
     }
     Completer<Map<String, dynamic>> completer = Completer();
-    HttpClientUtils.sendRequest(path,
+    HttpClientUtils.sendRequestAsync(path,
         method: HttpMethod.GET,
         headers: headers,
         token: token, onSuccess: (response) async {

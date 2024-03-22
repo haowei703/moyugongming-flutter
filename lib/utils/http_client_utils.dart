@@ -9,9 +9,9 @@ enum HttpMethod { GET, POST }
 
 class HttpClientUtils {
   // 服务器生产环境url
-  // static const String baseUrl = 'http://123.56.184.10:8080/';
+  static const String baseUrl = 'http://123.56.184.10:8080/';
   // 本地开发环境url
-  static const String _baseUrl = 'http://172.26.32.1:8080/';
+  // static const String baseUrl = 'http://172.26.32.1:8080/';
 
   /// 发送HTTP请求并处理异常
   ///
@@ -25,14 +25,14 @@ class HttpClientUtils {
   ///   - [onError]: 异常处理的回调函数
   ///
   /// 返回值：一个 Future，表示发送请求的结果
-  static Future<void> sendRequest(String path,
+  static Future<void> sendRequestAsync(String path,
       {required HttpMethod method,
       Map<String, String>? headers,
       dynamic body,
       String? token,
       Function(dynamic)? onSuccess,
       Function(Exception)? onError}) async {
-    var url = '${HttpClientUtils._baseUrl}$path';
+    var url = '${HttpClientUtils.baseUrl}$path';
     try {
       http.Response response;
 
@@ -77,4 +77,5 @@ class HttpClientUtils {
       }
     }
   }
+
 }

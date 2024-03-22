@@ -314,7 +314,7 @@ class _RegisterScreenState extends State<RegisterScreen>  {
     String basePath = "user/sendSMS";
     String path = "$basePath?phoneNumber=$phoneNumber";
     Map<String, String> headers = {'Content-Type': 'application/json'};
-    HttpClientUtils.sendRequest(path, method: HttpMethod.GET, headers: headers,
+    HttpClientUtils.sendRequestAsync(path, method: HttpMethod.GET, headers: headers,
         onSuccess: (response) {
       if (kDebugMode) {
         print('Request succeeded: $response');
@@ -348,7 +348,7 @@ class _RegisterScreenState extends State<RegisterScreen>  {
     String body;
     body = jsonEncode(
         {"phoneNumber": phoneNumber, "code": code, "password": password});
-    HttpClientUtils.sendRequest(path, method: HttpMethod.POST, headers: headers, body: body,
+    HttpClientUtils.sendRequestAsync(path, method: HttpMethod.POST, headers: headers, body: body,
         onSuccess: (response) {
       Future.delayed(Duration(seconds: 1), () {
         Fluttertoast.showToast(

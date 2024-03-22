@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moyugongming/page/home.dart';
+import 'package:moyugongming/page/minor.dart';
 import 'package:moyugongming/screens/login.dart';
 import 'package:moyugongming/page/profile.dart';
 import 'package:moyugongming/page/community.dart';
@@ -45,7 +46,7 @@ class _BottomNavigationBarState extends State<BottomNavigationBar> {
       child: BottomPage(
         tabWidgets: [
           HomePage(title: "主页"),
-          HomePage(title: "次页"),
+          MinorPage(),
           CommunityPage(),
           ProfilePage(),
         ],

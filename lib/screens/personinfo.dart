@@ -22,12 +22,6 @@ class _PersonInfoScreenState extends State<PersonInfoScreen> {
   @override
   void initState() {
     super.initState();
-    // _re();
-  }
-
-  Future<void> _re() async{
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
   }
 
   @override
@@ -64,7 +58,8 @@ class _PersonInfoScreenState extends State<PersonInfoScreen> {
                 backgroundColor: Colors.transparent,
                 // elevation: 1,
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back, size: 20, color: Colors.black87),
+                  icon: const Icon(Icons.arrow_back,
+                      size: 20, color: Colors.black87),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
