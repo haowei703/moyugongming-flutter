@@ -52,7 +52,7 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(
+                const SizedBox(
                   child: Text(
                     "工具区",
                     style: TextStyle(),
@@ -60,11 +60,11 @@ class _HomePageState extends State<HomePage> {
                 ),
                 Expanded(
                     child: Padding(
-                  padding: EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
                   child: Container(
-                    padding: EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(20),
                     child: GridView(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
                           crossAxisSpacing: 10.0,
                           mainAxisSpacing: 10.0,
@@ -73,7 +73,7 @@ class _HomePageState extends State<HomePage> {
                         Container(
                           decoration: BoxDecoration(
                               color: Colors.white,
-                              gradient: LinearGradient(
+                              gradient: const LinearGradient(
                                   colors: [
                                     Color(0xFFE09FCE),
                                     Color(0xFF87A3DC)
@@ -86,7 +86,7 @@ class _HomePageState extends State<HomePage> {
                                 BoxShadow(
                                     spreadRadius: 1,
                                     blurRadius: 10,
-                                    offset: Offset(-1, -1),
+                                    offset: const Offset(-1, -1),
                                     color: Colors.black.withOpacity(0.5))
                               ]),
                           child: ClipRRect(
@@ -111,7 +111,7 @@ class _HomePageState extends State<HomePage> {
                                     offset: Offset(1, -1),
                                     color: Colors.black.withOpacity(0.5))
                               ],
-                              gradient: LinearGradient(
+                              gradient: const LinearGradient(
                                   colors: [
                                     Color(0xFF008888),
                                     Color(0xFF2096CA)
@@ -142,7 +142,7 @@ class _HomePageState extends State<HomePage> {
                                     offset: Offset(-1, 1),
                                     color: Colors.black.withOpacity(0.5))
                               ],
-                              gradient: LinearGradient(
+                              gradient: const LinearGradient(
                                   colors: [
                                     Color(0xFF11B0D7),
                                     Color(0xFF87A3DC)
@@ -155,7 +155,7 @@ class _HomePageState extends State<HomePage> {
                             borderRadius: BorderRadius.circular(12),
                             child: TransparentButton(
                               onPressed: () {
-                                push(GenImageScreen());
+                                push(const GenImageScreen());
                               },
                               child: const Text(
                                 "文字转手语",
@@ -175,7 +175,7 @@ class _HomePageState extends State<HomePage> {
                                   offset: Offset(1, 1),
                                   color: Colors.black.withOpacity(0.5))
                             ],
-                            gradient: LinearGradient(
+                            gradient: const LinearGradient(
                                 colors: [Color(0xFF56D7E3), Color(0xFF00666A)],
                                 begin: Alignment.centerLeft,
                                 end: Alignment.bottomRight,
@@ -222,99 +222,59 @@ class _HomePageState extends State<HomePage> {
 
   // 检查登录信息
   btnClicked({required Function onSuccess}) async {
-    await _readUserInfo();
-    if (_token != null) {
-      _checkLoginState().then((success) {
-        if (success) {
-          onSuccess(_token);
-        }
-      });
+    Map<String, String>? userInfo = await _readUserInfo();
+    if (userInfo != null) {
+      onSuccess(userInfo['token']);
+    } else {
+      if (mounted) {
+        _showDialog();
+      }
     }
   }
 
   // 读取token信息
-  Future<void> _readUserInfo() async {
+  Future<Map<String, String>?> _readUserInfo() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString("token");
     LogUtil.init(title: "读取token信息", isDebug: true, limitLength: 200);
     LogUtil.d("token:$token");
     if (token != null) {
-      _token = token;
+      return {"token": token};
     } else {
-      if (mounted) {
-        showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-                  content: const Text("请先登录"),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () async {
-                        Navigator.pop(context);
-                        Navigator.push(
-                                context, SlideRouteRight(page: LoginScreen()))
-                            .then((value) {
-                          if (value != null && value != "") {
-                            Fluttertoast.showToast(
-                              msg: "登录成功",
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.CENTER,
-                              timeInSecForIosWeb: 1,
-                              backgroundColor: Colors.grey,
-                              textColor: Colors.white,
-                              fontSize: 16.0,
-                            );
-                          }
-                        });
-                      },
-                      child: const Text('确定'),
-                    ),
-                  ],
-                ));
-      }
+      return null;
     }
   }
 
-  // 测试websocket连接验证token有效性
-  Future<bool> _checkLoginState() async {
-    Completer<bool> completer = Completer<bool>();
-    try {
-      WebSocketChannel channel;
-      // String url = "ws://172.26.32.1:8080/ws/video?token=$_token";
-      String url = "ws://123.56.184.10:8080/ws/video?token=$_token";
-      channel = WebSocketChannel.connect(Uri.parse(url));
-      await channel.ready;
-      await channel.sink.close();
-      completer.complete(true);
-      return completer.future;
-    } catch (e) {
-      showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-                content: const Text("身份信息过期，请重新登录"),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                              context, SlideRouteRight(page: LoginScreen()))
-                          .then((value) {
-                        Fluttertoast.showToast(
-                          msg: "登录成功",
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.CENTER,
-                          timeInSecForIosWeb: 1,
-                          backgroundColor: Colors.grey,
-                          textColor: Colors.white,
-                          fontSize: 16.0,
-                        );
+  void _showDialog() {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              content: const Text("请先登录"),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    Navigator.push(
+                            context, SlideRouteRight(page: const LoginScreen()))
+                        .then((_) {
+                      _readUserInfo().then((userInfo) {
+                        if (userInfo != null) {
+                          Fluttertoast.showToast(
+                            msg: "登录成功",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.CENTER,
+                            timeInSecForIosWeb: 1,
+                            backgroundColor: Colors.grey,
+                            textColor: Colors.white,
+                            fontSize: 16.0,
+                          );
+                        }
                       });
-                    },
-                    child: const Text('确定'),
-                  ),
-                ],
-              ));
-      completer.complete(false);
-      return completer.future;
-    }
+                    });
+                  },
+                  child: const Text('确定'),
+                ),
+              ],
+            ));
   }
 }

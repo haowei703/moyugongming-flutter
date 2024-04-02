@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
@@ -61,7 +62,7 @@ class _PersonInfoScreenState extends State<PersonInfoScreen> {
                   icon: const Icon(Icons.arrow_back,
                       size: 20, color: Colors.black87),
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    Navigator.pop(context);
                   },
                 ),
                 title: const Text(
@@ -147,7 +148,11 @@ class _PersonInfoScreenState extends State<PersonInfoScreen> {
                       const SizedBox(height: 10),
                       SizedBox(
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            _clearUserInfo().then((_) {
+                              Navigator.pop(context);
+                            });
+                          },
                           style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12.0))),
@@ -175,5 +180,11 @@ class _PersonInfoScreenState extends State<PersonInfoScreen> {
       LogUtil.init(title: "读取用户信息", isDebug: true, limitLength: 200);
       LogUtil.d("userName:$userName,phoneNumber$phoneNumber");
     }
+  }
+
+  // 清空用户信息
+  Future<void> _clearUserInfo() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
   }
 }

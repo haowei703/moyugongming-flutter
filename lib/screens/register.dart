@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -9,6 +10,7 @@ import 'package:moyugongming/screens/webview.dart';
 
 import '../animation/slide_route.dart';
 import '../utils/http_client_utils.dart';
+import '../widgets/custom_dialog.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,7 +19,7 @@ class RegisterScreen extends StatefulWidget {
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen>  {
+class _RegisterScreenState extends State<RegisterScreen> {
   String _phoneNumber = "";
   String _code = "";
   String _password = "";
@@ -295,7 +297,7 @@ class _RegisterScreenState extends State<RegisterScreen>  {
   // 验证码计时
   _showTimer() {
     _timer?.cancel(); // 如果_timer已经被赋值，则先取消之前的定时器
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_time > 0) {
         setState(() {
           _time--;
@@ -314,27 +316,27 @@ class _RegisterScreenState extends State<RegisterScreen>  {
     String basePath = "user/sendSMS";
     String path = "$basePath?phoneNumber=$phoneNumber";
     Map<String, String> headers = {'Content-Type': 'application/json'};
-    HttpClientUtils.sendRequestAsync(path, method: HttpMethod.GET, headers: headers,
-        onSuccess: (response) {
-      if (kDebugMode) {
-        print('Request succeeded: $response');
-      }
+    HttpClientUtils.sendRequestAsync(path,
+        method: HttpMethod.GET, headers: headers, onSuccess: (_) {
+      Fluttertoast.showToast(msg: "发送成功");
     }, onError: (error) {
-      if (kDebugMode) {
-        print('Error occurred: $error');
+      if (error is HttpException) {
+        String msg = error.toString();
+        RegExp regExp = RegExp(r'Status code: (\d+), Response: (.+)');
+        Iterable<RegExpMatch> matches = regExp.allMatches(msg);
+        if (matches.isNotEmpty) {
+          RegExpMatch match = matches.first;
+          String? responseBody = match.group(2);
+          _showDialog(content: Text(responseBody!));
+        }
+      } else if (error is SocketException) {
+        _showDialog(
+            title: "网络未连接",
+            content: const Text(
+              "请检查网络设置",
+              style: TextStyle(fontSize: 16),
+            ));
       }
-      showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-                title: const Text("网络异常"),
-                content: const Text('请求超时，请检查网络设置'),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('确定'),
-                  ),
-                ],
-              ));
     });
   }
 
@@ -348,59 +350,39 @@ class _RegisterScreenState extends State<RegisterScreen>  {
     String body;
     body = jsonEncode(
         {"phoneNumber": phoneNumber, "code": code, "password": password});
-    HttpClientUtils.sendRequestAsync(path, method: HttpMethod.POST, headers: headers, body: body,
-        onSuccess: (response) {
-      Future.delayed(Duration(seconds: 1), () {
-        Fluttertoast.showToast(
-          msg: "注册成功,请重新登录",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.grey,
-          textColor: Colors.white,
-          fontSize: 16.0,
-        );
-        Navigator.pop(context, response);
-      });
-    }, onError: (error) {
-      if (kDebugMode) {
-        print(error);
-      }
-      String msg = error.toString();
-      RegExp regExp = RegExp(r'Status code: (\d+), Response: (.+)');
-      Iterable<RegExpMatch> matches = regExp.allMatches(msg);
-      if (matches.isNotEmpty) {
-        RegExpMatch match = matches.first;
-        String? statusCode = match.group(1);
-        String? responseBody = match.group(2);
-        if (responseBody == "该手机号已注册") {
-          showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                    title: Text("警告"),
-                    content: const Text("该手机号已注册"),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('确定'),
-                      ),
-                    ],
-                  ));
-        } else {
-          showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                    title: Text("Error"),
-                    content: Text("$statusCode:$responseBody"),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('确定'),
-                      ),
-                    ],
-                  ));
+    HttpClientUtils.sendRequestAsync(path,
+        method: HttpMethod.POST,
+        headers: headers,
+        body: body,
+        onSuccess: (response) {}, onError: (error) {
+      if (error is HttpException) {
+        String msg = error.toString();
+        RegExp regExp = RegExp(r'Status code: (\d+), Response: (.+)');
+        Iterable<RegExpMatch> matches = regExp.allMatches(msg);
+        if (matches.isNotEmpty) {
+          RegExpMatch match = matches.first;
+          String? responseBody = match.group(2);
+          _showDialog(content: Text(responseBody!));
         }
+      } else if (error is SocketException) {
+        _showDialog(
+            title: "网络未连接",
+            content: const Text(
+              "请检查网络设置",
+              style: TextStyle(fontSize: 16),
+            ));
       }
     });
+  }
+
+  _showDialog(
+      {String? title, required Widget content, VoidCallback? onClicked}) {
+    showDialog(
+        context: context,
+        builder: (context) => CustomDialog(
+              title: title,
+              onClicked: onClicked,
+              content: content,
+            ));
   }
 }

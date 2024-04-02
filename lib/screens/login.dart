@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -11,6 +12,7 @@ import 'package:moyugongming/animation/slide_route.dart';
 import 'package:moyugongming/screens/register.dart';
 import 'package:moyugongming/screens/webview.dart';
 import 'package:moyugongming/utils/log_util.dart';
+import 'package:moyugongming/widgets/custom_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../animation/left_right_slide_animation.dart';
@@ -19,7 +21,7 @@ import '../utils/http_client_utils.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
-  final String title = "登录默语共鸣";
+  final String title = "登录";
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -334,8 +336,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (userInfo != null) {
                             userInfo['token'] = token;
                             userInfo['phoneNumber'] = phoneNumber;
-                            await _saveUserInfo(userInfo: userInfo);
-                            _revertToProfile(userInfo['userName']);
+                            await _saveUserInfo(userInfo: userInfo)
+                                .then((value) => Navigator.pop(context));
                           }
                         });
                       } else {
@@ -347,8 +349,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (userInfo != null) {
                             userInfo['token'] = token;
                             userInfo['phoneNumber'] = phoneNumber;
-                            await _saveUserInfo(userInfo: userInfo);
-                            _revertToProfile(userInfo['userName']);
+                            await _saveUserInfo(userInfo: userInfo)
+                                .then((value) => Navigator.pop(context));
                           }
                         });
                       }
@@ -418,7 +420,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ));
   }
@@ -426,7 +428,7 @@ class _LoginScreenState extends State<LoginScreen> {
   // 验证码计时
   _showTimer() {
     _timer?.cancel(); // 如果_timer已经被赋值，则先取消之前的定时器
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_time > 0) {
         setState(() {
           _time--;
@@ -445,27 +447,35 @@ class _LoginScreenState extends State<LoginScreen> {
     String basePath = "user/sendSMS";
     String path = "$basePath?phoneNumber=$phoneNumber";
     Map<String, String> headers = {'Content-Type': 'application/json'};
-    HttpClientUtils.sendRequestAsync(path, method: HttpMethod.POST, headers: headers,
-        onSuccess: (response) {
-      if (kDebugMode) {
-        print('Request succeeded: $response');
-      }
+    HttpClientUtils.sendRequestAsync(path,
+        method: HttpMethod.GET, headers: headers, onSuccess: (response) {
+      Fluttertoast.showToast(
+        msg: response['data'],
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     }, onError: (error) {
-      if (kDebugMode) {
-        print('Error occurred: $error');
+      if (error is HttpException) {
+        String msg = error.toString();
+        RegExp regExp = RegExp(r'Status code: (\d+), Response: (.+)');
+        Iterable<RegExpMatch> matches = regExp.allMatches(msg);
+        if (matches.isNotEmpty) {
+          RegExpMatch match = matches.first;
+          String? responseBody = match.group(2);
+          _showDialog(content: Text(responseBody!));
+        }
+      } else if (error is SocketException) {
+        _showDialog(
+            title: "网络未连接",
+            content: const Text(
+              "请检查网络设置",
+              style: TextStyle(fontSize: 16),
+            ));
       }
-      showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-                title: const Text("网络异常"),
-                content: const Text('请求超时，请检查网络设置'),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('确定'),
-                  ),
-                ],
-              ));
     });
   }
 
@@ -494,43 +504,22 @@ class _LoginScreenState extends State<LoginScreen> {
         return completer.complete(token);
       }
     }, onError: (error) {
-      if (kDebugMode) {
-        print(error);
-      }
-      String msg = error.toString();
-      RegExp regExp = RegExp(r'Status code: (\d+), Response: (.+)');
-      Iterable<RegExpMatch> matches = regExp.allMatches(msg);
-      if (matches.isNotEmpty) {
-        RegExpMatch match = matches.first;
-        String? statusCode = match.group(1);
-        String? responseBody = match.group(2);
-        if (responseBody == "该用户还未注册") {
-          showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                    title: const Text("登录失败"),
-                    content: const Text('用户名或密码错误'),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('确定'),
-                      ),
-                    ],
-                  ));
-        } else {
-          showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                    title: const Text("Error"),
-                    content: Text("$statusCode:$responseBody"),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('确定'),
-                      ),
-                    ],
-                  ));
+      if (error is HttpException) {
+        String msg = error.toString();
+        RegExp regExp = RegExp(r'Status code: (\d+), Response: (.+)');
+        Iterable<RegExpMatch> matches = regExp.allMatches(msg);
+        if (matches.isNotEmpty) {
+          RegExpMatch match = matches.first;
+          String? responseBody = match.group(2);
+          _showDialog(content: Text(responseBody!));
         }
+      } else if (error is SocketException) {
+        _showDialog(
+            title: "网络未连接",
+            content: const Text(
+              "请检查网络设置",
+              style: TextStyle(fontSize: 16),
+            ));
       }
     });
     return completer.future;
@@ -557,7 +546,6 @@ class _LoginScreenState extends State<LoginScreen> {
   /// sharded_preferences写入用户信息和设置信息
   Future<void> _saveUserInfo({required Map<String, dynamic> userInfo}) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    LogUtil.init(title: "sp写入键值对", isDebug: true, limitLength: 200);
 
     if (userInfo.containsKey("token") &&
         userInfo.containsKey("userName") &&
@@ -567,14 +555,19 @@ class _LoginScreenState extends State<LoginScreen> {
       await prefs.setString("userName", userInfo['userName']);
       await prefs.setString("id", userInfo['id']);
       await prefs.setString("phoneNumber", userInfo['phoneNumber']);
+      LogUtil.init(title: "sp写入键值对", isDebug: true, limitLength: 200);
       LogUtil.d(userInfo);
     }
   }
 
-  /// 导航重定向
-  _revertToProfile(String userName) {
-    Future.delayed(const Duration(milliseconds: 1), () async {
-      Navigator.pop(context, userName);
-    });
+  _showDialog(
+      {String? title, required Widget content, VoidCallback? onClicked}) {
+    showDialog(
+        context: context,
+        builder: (context) => CustomDialog(
+              title: title,
+              onClicked: onClicked,
+              content: content,
+            ));
   }
 }

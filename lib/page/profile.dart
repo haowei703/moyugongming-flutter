@@ -26,17 +26,11 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   String? _userName;
-  bool? _logined;
+  bool _hasLogin = false;
 
   @override
   void initState() {
     super.initState();
-    // _res();
-  }
-
-  void _res() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.clear();
   }
 
   @override
@@ -85,13 +79,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                     SizedBox(
                                       child: GestureDetector(
                                         onTap: () {
-                                          if (_logined != null &&
-                                              _logined == true) {
-                                            Navigator.push(
-                                                context,
-                                                SlideRouteRight(
-                                                    page:
-                                                        const PersonInfoScreen()));
+                                          if (_hasLogin == true) {
+                                            _navigatorPush(context,
+                                                const PersonInfoScreen());
                                           } else {
                                             return;
                                           }
@@ -129,13 +119,23 @@ class _ProfilePageState extends State<ProfilePage> {
                                                   },
                                                 ),
                                               ),
-                                              onPressed: () {
-                                                _navigatorPush(context)
-                                                    .then((value) => {
-                                                          setState(() {
-                                                            _userName = value;
-                                                          })
-                                                        });
+                                              onPressed: () async {
+                                                await _navigatorPush(context,
+                                                    const LoginScreen());
+                                                if (_hasLogin) {
+                                                  Fluttertoast.showToast(
+                                                    msg: "登录成功",
+                                                    toastLength:
+                                                        Toast.LENGTH_SHORT,
+                                                    gravity:
+                                                        ToastGravity.CENTER,
+                                                    timeInSecForIosWeb: 1,
+                                                    backgroundColor:
+                                                        Colors.grey,
+                                                    textColor: Colors.white,
+                                                    fontSize: 16.0,
+                                                  );
+                                                }
                                               },
                                               child: const Text(
                                                 "登录",
@@ -410,34 +410,37 @@ class _ProfilePageState extends State<ProfilePage> {
         });
   }
 
-  Future<String> _navigatorPush(BuildContext context) async {
-    final result = await Navigator.push(
-        context, SlideRouteBottom(page: const LoginScreen()));
-    Completer<String> completer = Completer();
-    completer.complete(result);
-    Fluttertoast.showToast(
-      msg: "登录成功",
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.CENTER,
-      timeInSecForIosWeb: 1,
-      backgroundColor: Colors.grey,
-      textColor: Colors.white,
-      fontSize: 16.0,
-    );
-    return completer.future;
+  Future<void> _navigatorPush(BuildContext context, Widget widget) async {
+    await Navigator.push(context, SlideRouteBottom(page: widget));
+    await _readUserInfo().then((userInfo) {
+      if (userInfo != null) {
+        setState(() {
+          _userName = userInfo['userName'];
+        });
+      } else {
+        setState(() {
+          _userName = null;
+          _hasLogin = false;
+        });
+      }
+    });
   }
 
   /// sharded_preferences读取用户信息和设置信息
-  Future<void> _readUserInfo() async {
+  Future<Map<String, String>?> _readUserInfo() async {
+    Completer<Map<String, String>?> completer = Completer();
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userName = prefs.getString("userName");
     LogUtil.init(title: "读取用户信息", isDebug: true, limitLength: 200);
     LogUtil.d("userName:$userName");
     if (userName != null) {
       _userName = userName;
-      _logined = true;
+      _hasLogin = true;
+      Map<String, String> userInfo = {"userName": userName};
+      completer.complete(userInfo);
     } else {
-      _logined = false;
+      completer.complete(null);
     }
+    return completer.future;
   }
 }

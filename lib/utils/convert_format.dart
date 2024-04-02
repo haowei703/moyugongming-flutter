@@ -1,17 +1,9 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
-import 'package:moyugongming/utils/log_util.dart';
-
-enum ImageFormat {
-  YUV_420,
-  BGRA_8888
-}
 
 class FormatConvert {
-
-  static Future<Uint8List> convertUint8List(CameraImage image) {
-    Completer<Uint8List> completer = Completer<Uint8List>();
+  static Uint8List convertUint8List(CameraImage image) {
 
     // 获取图像数据
     List<Plane> planes = image.planes;
@@ -40,15 +32,17 @@ class FormatConvert {
       int uvSize = ySize ~/ 4;
       int totalSize = ySize + uvSize * 2;
 
-      Uint8List yuvBytes = Uint8List(totalSize);
-      yuvBytes.setAll(0, yPlaneBytes);
-      yuvBytes.setAll(ySize, uvBytes);
-      completer.complete(yuvBytes);
-      return completer.future;
+      Uint8List yuvBytes = Uint8List(totalSize + 4);
+      ByteData byteData = yuvBytes.buffer.asByteData();
+      byteData.setUint16(0, width, Endian.little);
+      byteData.setUint16(2, height, Endian.little);
+      yuvBytes.setAll(4, yPlaneBytes);
+      yuvBytes.setAll(ySize + 4, uvBytes);
+      return yuvBytes;
     } else if (image.format.group == ImageFormatGroup.bgra8888) {
       // BGRA_8888 格式
       Uint8List yuvBytes =
-      Uint8List.fromList(yPlaneBytes + uPlaneBytes + vPlaneBytes);
+          Uint8List.fromList(yPlaneBytes + uPlaneBytes + vPlaneBytes);
       int numPixels = yuvBytes.length ~/ 4; // 每个像素由四个字节组成
 
       // 创建单字节数组，每个像素用一个字节表示
@@ -66,13 +60,9 @@ class FormatConvert {
         byteArray[i] = ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF);
       }
 
-      completer.complete(byteArray);
-      return completer.future;
+      return byteArray;
     } else {
       throw Exception('Unsupported image format');
     }
-
-
-
   }
 }

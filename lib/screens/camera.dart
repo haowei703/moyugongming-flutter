@@ -1,16 +1,13 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:moyugongming/utils/convert_format.dart';
 import 'package:moyugongming/utils/log_util.dart';
+import 'package:moyugongming/utils/websocket_utils.dart';
 import 'package:moyugongming/widgets/ring.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen(
@@ -25,22 +22,20 @@ class CameraScreen extends StatefulWidget {
 
 class _CameraScreenState extends State<CameraScreen> {
   late CameraController _controller;
-  // 当前摄像头方向
+
   late Future<void> _initializeControllerFuture;
+  // 当前摄像头方向
   late CameraLensDirection _lensDirection;
+
+  // websocket管理实例
+  late WebSocketManager manager;
 
   // 是否正在流式传输
   bool _isStreaming = false;
-  bool _connected = true;
-  StreamController<List<int>>? _streamController;
-  StreamSubscription? _subScription;
-
-  late WebSocketChannel _channel;
 
   // 保存手语识别结果
   late StreamController<String> _messageController;
-  late StreamSubscription _messageSubscription;
-  String message = "";
+  String _message = "";
 
   @override
   void initState() {
@@ -49,24 +44,27 @@ class _CameraScreenState extends State<CameraScreen> {
         CameraController(widget.cameraList.first, ResolutionPreset.low);
     _lensDirection = widget.cameraList.first.lensDirection;
     _initializeControllerFuture = _controller.initialize();
-
-    // String url = "ws://172.26.32.1:8080/ws/video?token=${widget.token}";
-    String url = "ws://123.56.184.10:8080/ws/video?token=${widget.token}";
-    _channel = WebSocketChannel.connect(Uri.parse(url));
     _messageController = StreamController<String>();
-    _listenMessage();
+    Map<String, String> paramMap = {"token": widget.token};
+    manager = WebSocketManager(path: "ws/video", paramMap: paramMap);
+    manager.connectWebsocket().then((_) {
+      _listenMessage();
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    _channel.sink.close();
     _messageController.close();
+    manager.disconnect();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final screenWidth = size.width;
+
     return FutureBuilder<void>(
         future: _initializeControllerFuture,
         builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
@@ -74,22 +72,33 @@ class _CameraScreenState extends State<CameraScreen> {
             return Stack(
               fit: StackFit.expand,
               children: [
-                CameraPreview(_controller),
+                ClipRect(
+                  child: OverflowBox(
+                    alignment: Alignment.center,
+                    child: FittedBox(
+                      fit: BoxFit.fitHeight,
+                      child: SizedBox(
+                        width: screenWidth,
+                        height: screenWidth * _controller.value.aspectRatio,
+                        child: CameraPreview(_controller),
+                      ),
+                    ),
+                  ),
+                ),
                 Positioned(
                     top: 20,
                     left: 0,
                     right: 0,
                     child: Padding(
-                      padding: EdgeInsets.all(12.0),
+                      padding: const EdgeInsets.all(12.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           IconButton(
                               onPressed: () {
-                                _connected = false;
                                 Navigator.pop(context);
                               },
-                              icon: Icon(Icons.arrow_back))
+                              icon: const Icon(Icons.arrow_back))
                         ],
                       ),
                     )),
@@ -122,14 +131,14 @@ class _CameraScreenState extends State<CameraScreen> {
                                       width: 60,
                                       height: 60,
                                       child: IconButton(
-                                          onPressed: () async {
+                                          onPressed: () {
                                             if (!_isStreaming) {
-                                              await _startVideoStreaming();
+                                              _startVideoStreaming();
                                               setState(() {
                                                 _isStreaming = true;
                                               });
                                             } else {
-                                              await _stopVideoStreaming();
+                                              _stopVideoStreaming();
                                               setState(() {
                                                 _isStreaming = false;
                                               });
@@ -137,14 +146,16 @@ class _CameraScreenState extends State<CameraScreen> {
                                           },
                                           color: Colors.transparent,
                                           icon: _isStreaming
-                                              ? Icon(
+                                              ? const Icon(
                                                   Icons.videocam,
                                                   color: Colors.red,
                                                 )
                                               : Container(
-                                                  decoration: BoxDecoration(
-                                                      shape: BoxShape.circle,
-                                                      color: Colors.red),
+                                                  decoration:
+                                                      const BoxDecoration(
+                                                          shape:
+                                                              BoxShape.circle,
+                                                          color: Colors.red),
                                                 )),
                                     ),
                                   ],
@@ -167,7 +178,7 @@ class _CameraScreenState extends State<CameraScreen> {
                         const SizedBox(height: 20),
                         // 子组件最高高度为
                         ConstrainedBox(
-                          constraints: BoxConstraints(maxHeight: 200),
+                          constraints: const BoxConstraints(maxHeight: 200),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             child: ClipRRect(
@@ -197,18 +208,16 @@ class _CameraScreenState extends State<CameraScreen> {
                                             StreamBuilder(
                                               stream: _messageController.stream,
                                               builder: (context, snapshot) {
-                                                if (snapshot.hasData &&
-                                                    snapshot.data != null) {
-                                                  message += snapshot.data!;
-                                                }
-                                                if (snapshot.hasData &&
-                                                    snapshot.data == "clear") {
-                                                  message = "";
+                                                if(snapshot.hasData && snapshot.data != null && snapshot.data! == "clear"){
+                                                  _message = "";
                                                 }
                                                 return Column(
                                                   children: [
                                                     Text(
-                                                      message,
+                                                      snapshot.hasData
+                                                          ? _message +=
+                                                              snapshot.data!
+                                                          : _message,
                                                       softWrap: true,
                                                       style: TextStyle(
                                                           color: Colors.white
@@ -265,111 +274,61 @@ class _CameraScreenState extends State<CameraScreen> {
   Future<void> _startVideoStreaming() async {
     if (_isStreaming) return;
 
-    bool onRecord = false;
-
     List<int> imageData;
     LogUtil.init(title: "视频传输", isDebug: true, limitLength: 100);
-    Completer<void> completer = Completer<void>();
     try {
-      _streamController = StreamController<List<int>>();
-      // 开始视频流
-      _controller.startImageStream((image) async {
-        if(onRecord){
-          imageData = await FormatConvert.convertUint8List(image);
-          _streamController!.sink.add(imageData);
-        }else{
-          String size = "#width=${image.width}&height=${image.height}";
-          try{
-            _channel.sink.add(utf8.encode(size));
-          }catch(e){
-            LogUtil.d(e);
-            return;
-          }
-          onRecord = true;
-        }
+      await _controller.startImageStream((image) {
+        imageData = FormatConvert.convertUint8List(image);
+        _sendImageData(imageData);
       });
-      // 启用事件流监听
-      _subScription = _streamController!.stream.listen((data) async {
-        await _sendImageData(data, onRecord).catchError((error) {
-          LogUtil.d(error);
-          if(error == "size of image is not posted!"){
-            _channel.sink.add(data);
-          }
-        });
-      });
-      completer.complete();
     } on CameraException catch (e) {
       LogUtil.d(e);
-      completer.completeError(e);
     }
-    await completer.future;
   }
 
   /// 异步发送视频帧数据
-  /// [imageData]:视频数据
-  /// [onRecord]:是否已发送图像大小信息
-  Future<void> _sendImageData(List<int> imageData, bool onRecord) async {
+  Future<void> _sendImageData(List<int> imageData) async {
     Completer<void> completer = Completer<void>();
-    if(onRecord){
-      try {
-        _channel.sink.add(imageData);
-        completer.complete();
-      } catch (e) {
-        completer.completeError(e);
-      }
-      return completer.future;
-    }else {
-      completer.completeError("size of image is not posted!");
+    try {
+      WebSocketMessage<List<int>> webSocketMessage =
+          WebSocketMessage(message: imageData);
+      await manager.sendMessageAsync(webSocketMessage);
+      completer.complete();
+    } catch (e) {
+      completer.completeError(e);
     }
+    return completer.future;
   }
 
   // 关闭视频传输
   Future<void> _stopVideoStreaming() async {
-    await _controller.stopImageStream();
-    if (_streamController != null) {
-      _streamController!.close();
-      _streamController = null;
+    Completer<void> completer = Completer<void>();
+    try {
+      await _controller.stopImageStream();
+      completer.complete();
+    } catch (e) {
+      completer.completeError(e);
     }
-    if (_subScription != null) {
-      _subScription?.cancel();
-      _subScription = null;
-    }
+    return completer.future;
   }
 
   // 接收服务端回传消息
-  void _listenMessage() {
-    _messageSubscription = _channel.stream.listen((message) {
-      if (message is String) {
+  void _listenMessage() async {
+    await manager.listenMessage((message) {
+      if (message != "pong") {
         _messageController.sink.add(message);
       }
-    }, onDone: () {
-      if (_connected) {
-        Fluttertoast.showToast(
-          msg: "断开连接，即将返回主页",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.grey,
-          textColor: Colors.white,
-          fontSize: 16.0,
-        );
-        Navigator.pop(context);
-      }
     }, onError: (error) {
-      showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-                content: const Text("网络错误"),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context)
-                          .popUntil((ModalRoute.withName("/")));
-                    },
-                    child: const Text('确定'),
-                  ),
-                ],
-              ));
+      Fluttertoast.showToast(
+        msg: "与服务器断开连接，即将返回主页",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      Navigator.pop(context);
     });
   }
 }
