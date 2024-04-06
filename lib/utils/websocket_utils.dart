@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:core';
 
+import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class Callbacks {
@@ -29,7 +30,10 @@ class WebSocketMessage<T> {
 ///
 /// 该类拥有建立连接、接收服务端消息、客户端发送消息、心跳检测、心跳重连等机制
 class WebSocketManager {
-  final String _baseUrl = "ws://10.107.30.6:8080/";
+  // 服务器生产环境url
+  final String baseOnlineUrl = 'ws://123.56.184.10:8080/';
+  // 本地开发环境url
+  final String baseLocalUrl = 'ws://10.107.30.6:8080/';
   final String path;
   final Map<String, String> paramMap;
   late WebSocketChannel _channel;
@@ -56,7 +60,9 @@ class WebSocketManager {
   Future<void> connectWebsocket() async {
     Completer<void> completer = Completer();
     try {
-      String url = "$_baseUrl$path?${Uri(queryParameters: paramMap).query}";
+      String url = kReleaseMode
+          ? '$baseOnlineUrl$path?${Uri(queryParameters: paramMap).query}'
+          : '$baseLocalUrl$path?${Uri(queryParameters: paramMap).query}';
       _channel = WebSocketChannel.connect(Uri.parse(url));
       _channel.ready.then((_) {
         isConnected = true;

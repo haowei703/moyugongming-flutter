@@ -36,6 +36,7 @@ class _CameraScreenState extends State<CameraScreen> {
   // 保存手语识别结果
   late StreamController<String> _messageController;
   String _message = "";
+  bool _hasData = true;
 
   @override
   void initState() {
@@ -44,7 +45,7 @@ class _CameraScreenState extends State<CameraScreen> {
         CameraController(widget.cameraList.first, ResolutionPreset.low);
     _lensDirection = widget.cameraList.first.lensDirection;
     _initializeControllerFuture = _controller.initialize();
-    _messageController = StreamController<String>();
+    _messageController = StreamController<String>.broadcast();
     Map<String, String> paramMap = {"token": widget.token};
     manager = WebSocketManager(path: "ws/video", paramMap: paramMap);
     manager.connectWebsocket().then((_) {
@@ -194,8 +195,7 @@ class _CameraScreenState extends State<CameraScreen> {
                                       IconButton(
                                           onPressed: () {
                                             setState(() {
-                                              _messageController.sink
-                                                  .add("clear");
+                                              _message = "";
                                             });
                                           },
                                           icon: const Icon(
@@ -208,16 +208,17 @@ class _CameraScreenState extends State<CameraScreen> {
                                             StreamBuilder(
                                               stream: _messageController.stream,
                                               builder: (context, snapshot) {
-                                                if(snapshot.hasData && snapshot.data != null && snapshot.data! == "clear"){
-                                                  _message = "";
+                                                if (snapshot.hasError) {
+                                                  return const Text("错误");
+                                                }
+                                                if (_hasData && snapshot.hasData) {
+                                                  _message += snapshot.data!;
+                                                  _hasData = !_hasData;
                                                 }
                                                 return Column(
                                                   children: [
                                                     Text(
-                                                      snapshot.hasData
-                                                          ? _message +=
-                                                              snapshot.data!
-                                                          : _message,
+                                                      _message,
                                                       softWrap: true,
                                                       style: TextStyle(
                                                           color: Colors.white
@@ -302,14 +303,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
   // 关闭视频传输
   Future<void> _stopVideoStreaming() async {
-    Completer<void> completer = Completer<void>();
-    try {
-      await _controller.stopImageStream();
-      completer.complete();
-    } catch (e) {
-      completer.completeError(e);
-    }
-    return completer.future;
+    _controller.stopImageStream();
   }
 
   // 接收服务端回传消息
@@ -317,6 +311,9 @@ class _CameraScreenState extends State<CameraScreen> {
     await manager.listenMessage((message) {
       if (message != "pong") {
         _messageController.sink.add(message);
+        _hasData = true;
+        LogUtil.init(title: "监听到服务端消息", isDebug: true, limitLength: 20);
+        LogUtil.d("$message");
       }
     }, onError: (error) {
       Fluttertoast.showToast(

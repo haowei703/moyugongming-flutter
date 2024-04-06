@@ -10,9 +10,9 @@ enum HttpMethod { GET, POST }
 
 class HttpClientUtils {
   // 服务器生产环境url
-  static const String baseUrl = 'http://123.56.184.10:8080/';
+  static const String baseOnlineUrl = 'http://123.56.184.10:8080/';
   // 本地开发环境url
-  // static const String baseUrl = 'http://10.107.30.6:8080/';
+  static const String baseLocalUrl = 'http://10.107.30.6:8080/';
 
   /// 发送HTTP请求并处理异常
   ///
@@ -34,7 +34,9 @@ class HttpClientUtils {
       String? token,
       Function(dynamic)? onSuccess,
       Function(Exception)? onError}) async {
-    var url = '${HttpClientUtils.baseUrl}$path';
+    var url = kReleaseMode
+        ? '${HttpClientUtils.baseOnlineUrl}$path'
+        : '${HttpClientUtils.baseLocalUrl}$path';
     try {
       http.Response response;
 
