@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:moyugongming/page/home.dart';
 import 'package:moyugongming/page/minor.dart';
-import 'package:moyugongming/screens/login.dart';
 import 'package:moyugongming/page/profile.dart';
 import 'package:moyugongming/page/community.dart';
-import 'package:moyugongming/widgets/my_app_bar.dart';
-
 
 import 'modules/bottom/bottom_page.dart';
 

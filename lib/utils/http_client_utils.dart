@@ -79,4 +79,13 @@ class HttpClientUtils {
       }
     }
   }
+
+
+  // static Future<Object> getRestFulData(String path, ){
+  //   return
+  // }
+
+
+
+
 }

@@ -3,21 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:moyugongming/animation/slide_route.dart';
 import 'package:moyugongming/screens/login.dart';
-import 'package:moyugongming/utils/http_client_utils.dart';
 import 'package:moyugongming/widgets/transparent_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../screens/camera.dart';
 import '../screens/genImage.dart';
 import '../utils/log_util.dart';
 import '../widgets/my_app_bar.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:async';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
-import 'package:mime/mime.dart';
-import 'package:video_player/video_player.dart';
 
 class HomePage extends StatefulWidget {
   final String title;
