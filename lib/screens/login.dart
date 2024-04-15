@@ -444,10 +444,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   /// 获取验证码
   Future<void> getSMSCode(String phoneNumber) async {
+    String port = "8080";
     String basePath = "user/sendSMS";
     String path = "$basePath?phoneNumber=$phoneNumber";
     Map<String, String> headers = {'Content-Type': 'application/json'};
-    HttpClientUtils.sendRequestAsync(path,
+    HttpClientUtils.sendRequestAsync(port, path,
         method: HttpMethod.GET, headers: headers, onSuccess: (response) {
       Fluttertoast.showToast(
         msg: response['data'],
@@ -495,7 +496,8 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     Completer<String> completer = Completer();
-    await HttpClientUtils.sendRequestAsync(path,
+    String port = "8080";
+    await HttpClientUtils.sendRequestAsync(port, path,
         method: HttpMethod.POST,
         headers: headers,
         body: body, onSuccess: (response) async {
@@ -534,7 +536,8 @@ class _LoginScreenState extends State<LoginScreen> {
       return null;
     }
     Completer<Map<String, dynamic>> completer = Completer();
-    HttpClientUtils.sendRequestAsync(path,
+    String port = "8080";
+    HttpClientUtils.sendRequestAsync(port, path,
         method: HttpMethod.GET,
         headers: headers,
         token: token, onSuccess: (response) async {

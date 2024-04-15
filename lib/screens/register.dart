@@ -313,10 +313,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   /// 获取验证码
   Future<void> getSMSCode(String phoneNumber) async {
+    String port = "8080";
     String basePath = "user/sendSMS";
     String path = "$basePath?phoneNumber=$phoneNumber";
     Map<String, String> headers = {'Content-Type': 'application/json'};
-    HttpClientUtils.sendRequestAsync(path,
+    HttpClientUtils.sendRequestAsync(port, path,
         method: HttpMethod.GET, headers: headers, onSuccess: (_) {
       Fluttertoast.showToast(msg: "发送成功");
     }, onError: (error) {
@@ -345,12 +346,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       {required String phoneNumber,
       required String password,
       required String code}) async {
+    String port = "8080";
     String path = 'user/register';
     Map<String, String> headers = {'Content-Type': 'application/json'};
     String body;
     body = jsonEncode(
         {"phoneNumber": phoneNumber, "code": code, "password": password});
-    HttpClientUtils.sendRequestAsync(path,
+    HttpClientUtils.sendRequestAsync(port, path,
         method: HttpMethod.POST,
         headers: headers,
         body: body,

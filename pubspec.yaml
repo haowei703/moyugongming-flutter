@@ -49,6 +49,7 @@ dependencies:
   web_socket_channel: ^2.4.4
   webview_flutter: ^2.0.0
   flutter_sound: ^9.4.6
+  permission_handler: ^11.3.1
   
 
 

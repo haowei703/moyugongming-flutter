@@ -8,11 +8,12 @@ import 'package:moyugongming/utils/log_util.dart';
 
 enum HttpMethod { GET, POST }
 
+
 class HttpClientUtils {
   // 服务器生产环境url
-  static const String baseOnlineUrl = 'http://123.56.184.10:8080/';
+  static const String baseOnlineUrl = 'http://123.56.184.10';
   // 本地开发环境url
-  static const String baseLocalUrl = 'http://10.107.30.6:8080/';
+  static const String baseLocalUrl = 'http://192.168.31.237';
 
   /// 发送HTTP请求并处理异常
   ///
@@ -27,7 +28,7 @@ class HttpClientUtils {
   ///   - [onError]: 异常处理的回调函数
   ///
   /// 返回值：一个 Future，表示发送请求的结果
-  static Future<void> sendRequestAsync(String path,
+  static Future<void> sendRequestAsync(String port, String path,
       {required HttpMethod method,
       Map<String, String>? headers,
       dynamic body,
@@ -35,8 +36,8 @@ class HttpClientUtils {
       Function(dynamic)? onSuccess,
       Function(Exception)? onError}) async {
     var url = kReleaseMode
-        ? '${HttpClientUtils.baseOnlineUrl}$path'
-        : '${HttpClientUtils.baseLocalUrl}$path';
+        ? '${HttpClientUtils.baseOnlineUrl}:$port/$path'
+        : '${HttpClientUtils.baseLocalUrl}:$port/$path';
     try {
       http.Response response;
 
@@ -80,12 +81,7 @@ class HttpClientUtils {
     }
   }
 
-
   // static Future<Object> getRestFulData(String path, ){
   //   return
   // }
-
-
-
-
 }

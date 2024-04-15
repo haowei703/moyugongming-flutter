@@ -12,7 +12,6 @@ class _GenImageScreenState extends State<GenImageScreen> {
   String? imageUrl;
   String? prompt;
 
-
   // Tex
 
   @override
@@ -43,11 +42,13 @@ class _GenImageScreenState extends State<GenImageScreen> {
                         decoration: InputDecoration(
                             hintText: "请输入您想要查看的手语关键词", helperText: "请描述详细"),
                       ),
-                      ElevatedButton(onPressed: () async {
-                        if(prompt != null){
-                          await sendRequest(prompt: prompt!);
-                        }
-                      }, child: Text("确定"))
+                      ElevatedButton(
+                          onPressed: () async {
+                            if (prompt != null) {
+                              await sendRequest(prompt: prompt!);
+                            }
+                          },
+                          child: Text("确定"))
                     ],
                   ),
                 ),
@@ -75,9 +76,10 @@ class _GenImageScreenState extends State<GenImageScreen> {
   }
 
   Future<void> sendRequest({required String prompt}) async {
+    String port = "8080";
     String path = "getImage";
     Map<String, String> headers = {'Content-Type': 'application/json'};
-    HttpClientUtils.sendRequestAsync(path,
+    HttpClientUtils.sendRequestAsync(port, path,
         method: HttpMethod.POST, headers: headers, onSuccess: (response) {
       String url = response['data'];
       setState(() {
