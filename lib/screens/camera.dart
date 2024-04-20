@@ -50,6 +50,8 @@ class _CameraScreenState extends State<CameraScreen> {
     manager = WebSocketManager(path: "ws/video", paramMap: paramMap);
     manager.connectWebsocket().then((_) {
       _listenMessage();
+    }).catchError((error) {
+      Navigator.pop(context);
     });
   }
 
@@ -211,7 +213,8 @@ class _CameraScreenState extends State<CameraScreen> {
                                                 if (snapshot.hasError) {
                                                   return const Text("错误");
                                                 }
-                                                if (_hasData && snapshot.hasData) {
+                                                if (_hasData &&
+                                                    snapshot.hasData) {
                                                   _message += snapshot.data!;
                                                   _hasData = !_hasData;
                                                 }

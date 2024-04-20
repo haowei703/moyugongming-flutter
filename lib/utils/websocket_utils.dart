@@ -1,15 +1,10 @@
 import 'dart:async';
 import 'dart:core';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:moyugongming/utils/log_util.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-
-class Callbacks {
-  Function? onOpen;
-  Function? onMessage;
-  Function? onClose;
-  Function? onError;
-}
 
 /// 消息模板
 class WebSocketMessage<T> {
@@ -31,9 +26,9 @@ class WebSocketMessage<T> {
 /// 该类拥有建立连接、接收服务端消息、客户端发送消息、心跳检测、心跳重连等机制
 class WebSocketManager {
   // 服务器生产环境url
-  final String baseOnlineUrl = 'ws://123.56.184.10:8080/';
+  final String baseOnlineUrl = 'ws://123.56.184.10:8082/';
   // 本地开发环境url
-  final String baseLocalUrl = 'ws://10.107.30.6:8080/';
+  final String baseLocalUrl = 'ws://10.107.238.75:8082/';
   final String path;
   final Map<String, String> paramMap;
   late WebSocketChannel _channel;
@@ -41,8 +36,9 @@ class WebSocketManager {
   bool isConnected = false;
   late Timer _heartbeatTimer;
 
-  WebSocketManager({required this.path, required this.paramMap});
-
+  WebSocketManager({required this.path, required this.paramMap}) {
+    LogUtil.init(title: "websocket连接", isDebug: true, limitLength: 30);
+  }
 
   /// 发起websocket连接并处理异常
   ///
@@ -59,29 +55,36 @@ class WebSocketManager {
   /// 返回值：一个 Future，表示发送请求的结果
   Future<void> connectWebsocket() async {
     Completer<void> completer = Completer();
+    String url = kReleaseMode
+        ? '$baseOnlineUrl$path?${Uri(queryParameters: paramMap).query}'
+        : '$baseLocalUrl$path?${Uri(queryParameters: paramMap).query}';
+
     try {
-      String url = kReleaseMode
-          ? '$baseOnlineUrl$path?${Uri(queryParameters: paramMap).query}'
-          : '$baseLocalUrl$path?${Uri(queryParameters: paramMap).query}';
       _channel = WebSocketChannel.connect(Uri.parse(url));
-      _channel.ready.then((_) {
-        isConnected = true;
-        startPing();
-        completer.complete();
-      });
-    } catch (e) {
+      await _channel.ready;
+      isConnected = true;
+      startPing();
+      completer.complete();
+    } on SocketException catch (e) {
       completer.completeError(e);
+      LogUtil.d("连接异常${e.toString()}");
+      throw Exception(e);
+    } on HttpException catch (e) {
+      completer.completeError(e);
+      LogUtil.d(e.toString());
       throw Exception(e);
     }
+
     return completer.future;
   }
 
   /// 断开连接
   void disconnect() {
+    LogUtil.d("断开连接，原因${_channel.closeReason}");
     _channel.sink.close();
     isConnected = false;
     _messageSubscription?.cancel();
-    stopPing();
+    if (isConnected) stopPing();
   }
 
   /// 阻塞调用发送消息方法
@@ -107,9 +110,10 @@ class WebSocketManager {
 
   /// 开启心跳
   void startPing() {
+    LogUtil.d("心跳开启");
     const pingInterval = Duration(seconds: 30);
     _heartbeatTimer = Timer.periodic(pingInterval, (timer) {
-      if(isConnected) {
+      if (isConnected) {
         _channel.sink.add("ping");
       }
     });
@@ -121,7 +125,8 @@ class WebSocketManager {
   }
 
   /// 开启监听
-  Future<void> listenMessage(Function onMessage, {Function? onError, Function? onClose}) async{
+  Future<void> listenMessage(Function onMessage,
+      {Function? onError, Function? onClose}) async {
     if (_messageSubscription != null) {
       throw Exception("已设置监听");
     }
@@ -135,14 +140,14 @@ class WebSocketManager {
       onMessage(webSocketMessage.getMessage());
     }, cancelOnError: false);
 
-    if(onError != null){
+    if (onError != null) {
       _channel.stream.handleError((error) {
         onError(error);
         throw Exception("发生错误$error");
       });
     }
 
-    if(onClose != null){
+    if (onClose != null) {
       _channel.sink.done.then((_) {
         isConnected = false;
         _messageSubscription?.cancel();

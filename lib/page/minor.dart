@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:moyugongming/enum/EvalMode.dart';
+import 'package:moyugongming/model/enums/evalmode.dart';
 import 'package:moyugongming/screens/evaluation.dart';
+import 'package:moyugongming/widgets/transparent_button.dart';
 
 class MinorPage extends StatefulWidget {
   const MinorPage({super.key});
@@ -15,8 +17,11 @@ class _MinorPageState extends State<MinorPage> {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(200),
-        child: Container(
-          color: Colors.grey.shade300,
+        child: AppBar(
+          backgroundColor: Theme.of(context).highlightColor,
+          actions: [
+            TextButton(onPressed: () {}, child: const Text("使用帮助")),
+          ],
         ),
       ),
       body: Center(
@@ -32,7 +37,7 @@ class _MinorPageState extends State<MinorPage> {
               ElevatedButton(
                   style: ElevatedButton.styleFrom(
                       shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(20)))),
+                          borderRadius: BorderRadius.all(Radius.circular(5)))),
                   onPressed: () {
                     Navigator.push(
                         context,
@@ -44,13 +49,13 @@ class _MinorPageState extends State<MinorPage> {
               ElevatedButton(
                   style: ElevatedButton.styleFrom(
                       shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(20)))),
+                          borderRadius: BorderRadius.all(Radius.circular(5)))),
                   onPressed: () {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                const AudioEvalPage(evalMode: EvalMode.sentence)));
+                            builder: (context) => const AudioEvalPage(
+                                evalMode: EvalMode.sentence)));
                   },
                   child: const Text("句子训练")),
             ],

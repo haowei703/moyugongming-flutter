@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:moyugongming/modules/bottom/tab_icons.dart';
-import 'package:moyugongming/page/home.dart';
-import 'package:moyugongming/page/profile.dart';
-import 'package:moyugongming/widgets/my_app_bar.dart';
 
 import 'bottom_bar.dart';
 import 'tabIcon_data.dart';
@@ -18,8 +14,6 @@ class BottomPage extends StatefulWidget {
 
 class _BottomPageState extends State<BottomPage> {
   int _pageIndex = 0;
-
-  late final List<Widget> tabWidgets;
 
   List<TabIconData> tabIconsList = <TabIconData>[
     TabIconData(

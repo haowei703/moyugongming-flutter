@@ -8,12 +8,11 @@ import 'package:moyugongming/utils/log_util.dart';
 
 enum HttpMethod { GET, POST }
 
-
 class HttpClientUtils {
   // 服务器生产环境url
   static const String baseOnlineUrl = 'http://123.56.184.10';
   // 本地开发环境url
-  static const String baseLocalUrl = 'http://192.168.31.237';
+  static const String baseLocalUrl = 'http://172.26.32.1';
 
   /// 发送HTTP请求并处理异常
   ///
@@ -62,6 +61,7 @@ class HttpClientUtils {
       Map<String, dynamic> responseBody =
           jsonDecode(utf8.decode(response.bodyBytes));
 
+      LogUtil.d(response.statusCode);
       if (response.statusCode == 200) {
         // 请求成功，执行回调函数或处理其他逻辑
         LogUtil.d(responseBody);
@@ -81,7 +81,16 @@ class HttpClientUtils {
     }
   }
 
-  // static Future<Object> getRestFulData(String path, ){
-  //   return
-  // }
+  /// 检查与远程主机是否可以建立网络连接
+  static Future<bool> checkNetworkState() async {
+    LogUtil.init(title: "httpRequest", isDebug: true, limitLength: 30);
+    String url = "https://www.shiroha.love";
+    try {
+      final response = await http.get(Uri.parse(url));
+      return response.statusCode == 200;
+    } on HttpException catch (e) {
+      LogUtil.d(e);
+      return false;
+    }
+  }
 }

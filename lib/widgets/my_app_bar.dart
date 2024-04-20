@@ -66,7 +66,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
           leadingW ?? (automaticallyImplyLeading ? leading(context) : null),
       automaticallyImplyLeading: automaticallyImplyLeading,
       centerTitle: centerTitle,
-      actions: rightDMActions ?? [Center()],
+      actions: rightDMActions ?? [const Center()],
       bottom: bottom,
     );
   }

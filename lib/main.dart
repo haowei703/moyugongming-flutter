@@ -1,10 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:moyugongming/page/home.dart';
 import 'package:moyugongming/page/minor.dart';
 import 'package:moyugongming/page/profile.dart';
 import 'package:moyugongming/page/community.dart';
-
-import 'modules/bottom/bottom_page.dart';
+import 'package:moyugongming/widgets/common/navigation_bar/nav_bar.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,36 +18,64 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: '默语共鸣',
       theme: ThemeData(
-        primaryColor: Color.fromRGBO(240, 244, 255, 1),
-        scaffoldBackgroundColor: Colors.white,
-        useMaterial3: true,
+        primarySwatch: Colors.cyan,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        iconTheme: const IconThemeData(
+          color: Colors.blueAccent
+        )
       ),
-      home: BottomNavigationBar(title: "默语共鸣"),
+      home: const HomeFrame(),
     );
   }
 }
 
-class BottomNavigationBar extends StatefulWidget {
-  const BottomNavigationBar({super.key, required this.title});
-
-  final String title;
+class HomeFrame extends StatefulWidget {
+  const HomeFrame({super.key});
 
   @override
-  State<BottomNavigationBar> createState() => _BottomNavigationBarState();
+  State<HomeFrame> createState() => _HomeFrameState();
 }
 
-class _BottomNavigationBarState extends State<BottomNavigationBar> {
+class _HomeFrameState extends State<HomeFrame> {
+  // 底部导航栏图标
+  late List<TabIconData> _tabIconDataList;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabIconDataList = <TabIconData>[
+      TabIconData(
+          label: "首页",
+          icon: CupertinoIcons.home,
+          selectedIcon: CupertinoIcons.house_fill,
+          index: 0),
+      TabIconData(
+          label: "语训",
+          icon: CupertinoIcons.mic,
+          selectedIcon: CupertinoIcons.mic_solid,
+          index: 1),
+      TabIconData(
+          label: "社区",
+          icon: Icons.shop_outlined,
+          selectedIcon: Icons.shop,
+          index: 2),
+      TabIconData(
+          label: "个人主页",
+          icon: CupertinoIcons.profile_circled,
+          selectedIcon: CupertinoIcons.profile_circled,
+          index: 3),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: BottomPage(
-        tabWidgets: [
-          HomePage(title: "主页"),
-          MinorPage(),
-          CommunityPage(),
-          ProfilePage(),
-        ],
-      ),
+    return Scaffold(
+      body: BottomBarFrame(tabIconList: _tabIconDataList, pages: const <Widget>[
+        HomePage(title: "主页"),
+        MinorPage(),
+        CommunityPage(),
+        ProfilePage()
+      ]),
     );
   }
 }

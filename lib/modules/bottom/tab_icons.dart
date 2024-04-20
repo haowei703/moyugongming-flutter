@@ -21,7 +21,7 @@ class TabIcons extends StatefulWidget {
 
 class _TabIconsState extends State<TabIcons> with TickerProviderStateMixin {
   // [easeInOutBack] https://flutter.github.io/assets-for-api-docs/assets/animation/curve_ease_in_out_back.mp4
-  final myCurve = Cubic(0.68, 0, 0, 1.5);
+  final myCurve = const Cubic(0.68, 0, 0, 1.5);
 
   @override
   void initState() {

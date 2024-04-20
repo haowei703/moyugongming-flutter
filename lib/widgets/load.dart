@@ -6,7 +6,7 @@ class LoadingDialog {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return Dialog(
+        return const Dialog(
           child: Center(
             child: CircularProgressIndicator(),
           ),
