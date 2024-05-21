@@ -26,9 +26,9 @@ class WebSocketMessage<T> {
 /// 该类拥有建立连接、接收服务端消息、客户端发送消息、心跳检测、心跳重连等机制
 class WebSocketManager {
   // 服务器生产环境url
-  final String baseOnlineUrl = 'ws://123.56.184.10:8082/';
+  final String baseOnlineUrl = 'ws://123.56.184.10:8080/';
   // 本地开发环境url
-  final String baseLocalUrl = 'ws://10.107.238.75:8082/';
+  final String baseLocalUrl = 'ws://10.105.98.56:8080/';
   final String path;
   final Map<String, String> paramMap;
   late WebSocketChannel _channel;

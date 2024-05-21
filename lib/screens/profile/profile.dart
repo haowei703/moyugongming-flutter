@@ -8,12 +8,12 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:moyugongming/animation/slide_route.dart';
-import 'package:moyugongming/screens/login.dart';
-import 'package:moyugongming/screens/personinfo.dart';
-import 'package:moyugongming/screens/setting.dart';
+import 'package:moyugongming/widgets/animation/slide_route.dart';
+import 'package:moyugongming/screens/account/login_screen.dart';
+import 'package:moyugongming/screens/profile/personinfo.dart';
+import 'package:moyugongming/screens/profile/setting.dart';
 import 'package:moyugongming/utils/log_util.dart';
-import 'package:moyugongming/widgets/transparent_button.dart';
+import 'package:moyugongming/widgets/button/transparent_button.dart';
 
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';

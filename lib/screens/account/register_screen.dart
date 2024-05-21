@@ -2,15 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:moyugongming/screens/webview.dart';
+import 'package:moyugongming/screens/account/webview.dart';
 
-import '../animation/slide_route.dart';
-import '../utils/http_client_utils.dart';
-import '../widgets/custom_dialog.dart';
+import 'package:moyugongming/widgets/animation/slide_route.dart';
+import '../../utils/http_client_utils.dart';
+import '../../widgets/dialog/custom_dialog.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -313,11 +312,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   /// 获取验证码
   Future<void> getSMSCode(String phoneNumber) async {
-    String port = "8080";
     String basePath = "user/sendSMS";
     String path = "$basePath?phoneNumber=$phoneNumber";
     Map<String, String> headers = {'Content-Type': 'application/json'};
-    HttpClientUtils.sendRequestAsync(port, path,
+    HttpClientUtils.sendRequestAsync(path,
         method: HttpMethod.GET, headers: headers, onSuccess: (_) {
       Fluttertoast.showToast(msg: "发送成功");
     }, onError: (error) {
@@ -346,17 +344,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
       {required String phoneNumber,
       required String password,
       required String code}) async {
-    String port = "8080";
     String path = 'user/register';
     Map<String, String> headers = {'Content-Type': 'application/json'};
     String body;
     body = jsonEncode(
         {"phoneNumber": phoneNumber, "code": code, "password": password});
-    HttpClientUtils.sendRequestAsync(port, path,
+    HttpClientUtils.sendRequestAsync(path,
         method: HttpMethod.POST,
         headers: headers,
         body: body,
-        onSuccess: (response) {}, onError: (error) {
+        onSuccess: (response) {
+
+        }, onError: (error) {
       if (error is HttpException) {
         String msg = error.toString();
         RegExp regExp = RegExp(r'Status code: (\d+), Response: (.+)');

@@ -16,9 +16,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
-import '../animation/slide_route.dart';
-import '../model/objects/mic_data.dart';
-import '../widgets/custom_dialog.dart';
+import 'package:moyugongming/widgets/animation/slide_route.dart';
+import '../../model/objects/mic_data.dart';
+import '../../widgets/dialog/custom_dialog.dart';
 
 class AudioEvalPage extends StatefulWidget {
   final EvalMode evalMode;
@@ -325,7 +325,6 @@ class _AudioEvalPageState extends State<AudioEvalPage> {
 
   Future<void> _sendMessage() async {
     String url = _filePath;
-    String port = "8081";
     String path = "api/audio";
     File tempFile = File(url);
     List<int> fileBytes = await tempFile.readAsBytes();
@@ -336,7 +335,7 @@ class _AudioEvalPageState extends State<AudioEvalPage> {
     await _audioRecorder.deleteRecord(fileName: "temp.wav");
 
     LogUtil.init(title: "测评结果", isDebug: true, limitLength: 50);
-    await HttpClientUtils.sendRequestAsync(port, path,
+    await HttpClientUtils.sendRequestAsync(path,
         method: HttpMethod.POST,
         token: _token,
         headers: headers,

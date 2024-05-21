@@ -2,21 +2,18 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:moyugongming/animation/slide_route.dart';
-import 'package:moyugongming/screens/register.dart';
-import 'package:moyugongming/screens/webview.dart';
+import 'package:moyugongming/widgets/animation/slide_route.dart';
+import 'package:moyugongming/widgets/animation/left_right_slide_animation.dart';
+import 'package:moyugongming/screens/account/register_screen.dart';
+import 'package:moyugongming/screens/account/webview.dart';
 import 'package:moyugongming/utils/log_util.dart';
-import 'package:moyugongming/widgets/custom_dialog.dart';
+import 'package:moyugongming/widgets/dialog/custom_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../animation/left_right_slide_animation.dart';
-import '../utils/http_client_utils.dart';
+import '../../utils/http_client_utils.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -444,11 +441,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   /// 获取验证码
   Future<void> getSMSCode(String phoneNumber) async {
-    String port = "8080";
     String basePath = "user/sendSMS";
     String path = "$basePath?phoneNumber=$phoneNumber";
     Map<String, String> headers = {'Content-Type': 'application/json'};
-    HttpClientUtils.sendRequestAsync(port, path,
+    HttpClientUtils.sendRequestAsync(path,
         method: HttpMethod.GET, headers: headers, onSuccess: (response) {
       Fluttertoast.showToast(
         msg: response['data'],
@@ -496,8 +492,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     Completer<String> completer = Completer();
-    String port = "8080";
-    await HttpClientUtils.sendRequestAsync(port, path,
+    await HttpClientUtils.sendRequestAsync(path,
         method: HttpMethod.POST,
         headers: headers,
         body: body, onSuccess: (response) async {
@@ -536,8 +531,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return null;
     }
     Completer<Map<String, dynamic>> completer = Completer();
-    String port = "8080";
-    HttpClientUtils.sendRequestAsync(port, path,
+    HttpClientUtils.sendRequestAsync(path,
         method: HttpMethod.GET,
         headers: headers,
         token: token, onSuccess: (response) async {

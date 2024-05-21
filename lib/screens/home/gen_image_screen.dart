@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:moyugongming/utils/http_client_utils.dart';
 
@@ -22,14 +21,14 @@ class _GenImageScreenState extends State<GenImageScreen> {
       ),
       body: Center(
         child: Padding(
-          padding: EdgeInsets.all(30.0),
+          padding: const EdgeInsets.all(30.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               SizedBox(
                 child: Container(
-                  padding: EdgeInsets.all(30.0),
+                  padding: const EdgeInsets.all(30.0),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12.0),
                       border: Border.all(color: Colors.black)),
@@ -76,10 +75,9 @@ class _GenImageScreenState extends State<GenImageScreen> {
   }
 
   Future<void> sendRequest({required String prompt}) async {
-    String port = "8080";
     String path = "getImage";
     Map<String, String> headers = {'Content-Type': 'application/json'};
-    HttpClientUtils.sendRequestAsync(port, path,
+    HttpClientUtils.sendRequestAsync(path,
         method: HttpMethod.POST, headers: headers, onSuccess: (response) {
       String url = response['data'];
       setState(() {

@@ -1,8 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:moyugongming/model/enums/evalmode.dart';
-import 'package:moyugongming/screens/evaluation.dart';
-import 'package:moyugongming/widgets/transparent_button.dart';
+import 'package:moyugongming/screens/minor/evaluation_screen.dart';
 
 class MinorPage extends StatefulWidget {
   const MinorPage({super.key});

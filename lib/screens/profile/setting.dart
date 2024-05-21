@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:moyugongming/animation/slide_route.dart';
-
-import '../widgets/transparent_button.dart';
+import '../../widgets/button/transparent_button.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});

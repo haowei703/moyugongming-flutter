@@ -4,10 +4,10 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:moyugongming/widgets/transparent_button.dart';
+import 'package:moyugongming/widgets/button/transparent_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../utils/log_util.dart';
+import '../../utils/log_util.dart';
 
 class PersonInfoScreen extends StatefulWidget {
   const PersonInfoScreen({super.key});

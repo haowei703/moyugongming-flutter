@@ -7,7 +7,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:moyugongming/utils/convert_format.dart';
 import 'package:moyugongming/utils/log_util.dart';
 import 'package:moyugongming/utils/websocket_utils.dart';
-import 'package:moyugongming/widgets/ring.dart';
+import 'package:moyugongming/widgets/shape/ring.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen(

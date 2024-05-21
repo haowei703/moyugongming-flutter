@@ -2,14 +2,14 @@ import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:moyugongming/animation/slide_route.dart';
-import 'package:moyugongming/screens/login.dart';
+import 'package:moyugongming/widgets/animation/slide_route.dart';
+import 'package:moyugongming/screens/account/login_screen.dart';
 import 'package:moyugongming/utils/http_client_utils.dart';
-import 'package:moyugongming/widgets/transparent_button.dart';
+import 'package:moyugongming/widgets/button/transparent_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../screens/camera.dart';
-import '../utils/log_util.dart';
+import 'camera_screen.dart';
+import '../../utils/log_util.dart';
 import 'dart:async';
 
 class HomePage extends StatefulWidget {
@@ -40,12 +40,9 @@ class _HomePageState extends State<HomePage> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            decoration: const BoxDecoration(
-              boxShadow: [
-                BoxShadow(offset: Offset(0, 0), blurRadius: 5),
-              ],
-              color: Colors.black
-            ),
+            decoration: const BoxDecoration(boxShadow: [
+              BoxShadow(offset: Offset(0, 0), blurRadius: 5),
+            ], color: Colors.black),
           ),
         ),
       ),

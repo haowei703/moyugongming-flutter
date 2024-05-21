@@ -22,7 +22,7 @@ class RingPainter extends CustomPainter {
     // 绘制内部圆
     if (innerRadius > 0) {
       double innerCircleRadius = outerRadius - innerRadius;
-      paint..style = PaintingStyle.fill;
+      paint.style = PaintingStyle.fill;
       canvas.drawCircle(center, innerCircleRadius, paint);
     }
   }
@@ -38,12 +38,12 @@ class RingWidget extends StatelessWidget {
   final double strokeWidth;
   final double innerRadius;
 
-  RingWidget({required this.color, required this.strokeWidth, required this.innerRadius});
+  const RingWidget({super.key, required this.color, required this.strokeWidth, required this.innerRadius});
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      size: Size.square(100), // 适当调整大小
+      size: const Size.square(100), // 适当调整大小
       painter: RingPainter(color: color, strokeWidth: strokeWidth, innerRadius: innerRadius),
     );
   }

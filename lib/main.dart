@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:moyugongming/page/home.dart';
-import 'package:moyugongming/page/minor.dart';
-import 'package:moyugongming/page/profile.dart';
-import 'package:moyugongming/page/community.dart';
-import 'package:moyugongming/widgets/common/navigation_bar/nav_bar.dart';
+import 'package:moyugongming/screens/home/home_screen.dart';
+import 'package:moyugongming/screens/minor/minor_screen.dart';
+import 'package:moyugongming/screens/profile/profile.dart';
+import 'package:moyugongming/screens/community/community_screen.dart';
+import 'package:moyugongming/widgets/navigation_bar/nav_bar.dart';
 
 void main() {
   runApp(const MyApp());

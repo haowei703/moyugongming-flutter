@@ -7,7 +7,7 @@ class TransparentButton extends StatefulWidget {
   const TransparentButton({super.key, required this.child, required this.onPressed});
 
   @override
-  _TransparentButtonState createState() => _TransparentButtonState();
+  State<TransparentButton> createState() => _TransparentButtonState();
 }
 
 class _TransparentButtonState extends State<TransparentButton> {
@@ -15,12 +15,12 @@ class _TransparentButtonState extends State<TransparentButton> {
 
   void _changeBackgroundColor() {
     setState(() {
-      _backgroundColor = Color.fromRGBO(229, 229, 229, 1); // 在点击时将背景颜色设为灰色
+      _backgroundColor = const Color.fromRGBO(229, 229, 229, 1); // 在点击时将背景颜色设为灰色
     });
 
     widget.onPressed(); // 触发按钮点击事件
 
-    Future.delayed(Duration(milliseconds: 200), () {
+    Future.delayed(const Duration(milliseconds: 200), () {
       setState(() {
         _backgroundColor = Colors.transparent; // 恢复背景颜色为透明
       });
