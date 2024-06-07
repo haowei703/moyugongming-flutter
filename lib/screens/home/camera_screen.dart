@@ -41,10 +41,7 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   void initState() {
     super.initState();
-    _controller =
-        CameraController(widget.cameraList.first, ResolutionPreset.low);
-    _lensDirection = widget.cameraList.first.lensDirection;
-    _initializeControllerFuture = _controller.initialize();
+    initCamera();
     _messageController = StreamController<String>.broadcast();
     Map<String, String> paramMap = {"token": widget.token};
     manager = WebSocketManager(path: "ws/video", paramMap: paramMap);
@@ -53,6 +50,14 @@ class _CameraScreenState extends State<CameraScreen> {
     }).catchError((error) {
       Navigator.pop(context);
     });
+  }
+
+  void initCamera() {
+    _controller = CameraController(
+        widget.cameraList.first, ResolutionPreset.low,
+        enableAudio: false, fps: 10);
+    _lensDirection = widget.cameraList.first.lensDirection;
+    _initializeControllerFuture = _controller.initialize();
   }
 
   @override
@@ -123,7 +128,7 @@ class _CameraScreenState extends State<CameraScreen> {
                               children: [
                                 Stack(
                                   children: [
-                                    Positioned.fill(
+                                    const Positioned.fill(
                                       child: RingWidget(
                                         color: Colors.white,
                                         strokeWidth: 5.0,
@@ -281,9 +286,9 @@ class _CameraScreenState extends State<CameraScreen> {
     List<int> imageData;
     LogUtil.init(title: "视频传输", isDebug: true, limitLength: 100);
     try {
-      await _controller.startImageStream((image) {
+      await _controller.startImageStream((image) async {
         imageData = FormatConvert.convertUint8List(image);
-        _sendImageData(imageData);
+        await _sendImageData(imageData);
       });
     } on CameraException catch (e) {
       LogUtil.d(e);
@@ -292,21 +297,16 @@ class _CameraScreenState extends State<CameraScreen> {
 
   /// 异步发送视频帧数据
   Future<void> _sendImageData(List<int> imageData) async {
-    Completer<void> completer = Completer<void>();
-    try {
-      WebSocketMessage<List<int>> webSocketMessage =
-          WebSocketMessage(message: imageData);
-      await manager.sendMessageAsync(webSocketMessage);
-      completer.complete();
-    } catch (e) {
-      completer.completeError(e);
-    }
-    return completer.future;
+    WebSocketMessage<List<int>> webSocketMessage =
+        WebSocketMessage(message: imageData);
+    await manager
+        .sendMessageAsync(webSocketMessage)
+        .catchError((error) => onError());
   }
 
   // 关闭视频传输
   Future<void> _stopVideoStreaming() async {
-    _controller.stopImageStream();
+    await _controller.stopImageStream();
   }
 
   // 接收服务端回传消息
@@ -318,7 +318,11 @@ class _CameraScreenState extends State<CameraScreen> {
         LogUtil.init(title: "监听到服务端消息", isDebug: true, limitLength: 20);
         LogUtil.d("$message");
       }
-    }, onError: (error) {
+    }, onError: (error) => onError());
+  }
+
+  void onError() {
+    if (mounted) {
       Fluttertoast.showToast(
         msg: "与服务器断开连接，即将返回主页",
         toastLength: Toast.LENGTH_SHORT,
@@ -329,6 +333,6 @@ class _CameraScreenState extends State<CameraScreen> {
         fontSize: 16.0,
       );
       Navigator.pop(context);
-    });
+    }
   }
 }

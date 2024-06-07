@@ -4,7 +4,7 @@ import 'package:moyugongming/screens/home/home_screen.dart';
 import 'package:moyugongming/screens/minor/minor_screen.dart';
 import 'package:moyugongming/screens/profile/profile.dart';
 import 'package:moyugongming/screens/community/community_screen.dart';
-import 'package:moyugongming/widgets/navigation_bar/nav_bar.dart';
+import 'package:moyugongming/widgets/navigation_bar/navigation_bar.dart';
 
 void main() {
   runApp(const MyApp());

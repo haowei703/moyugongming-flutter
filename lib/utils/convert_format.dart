@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
 
@@ -16,18 +15,6 @@ class FormatConvert {
 
     // 根据不同的图像格式进行处理
     if (image.format.group == ImageFormatGroup.yuv420) {
-      // YUV420 格式
-      int uvRowStride = planes[1].bytesPerRow;
-      int? uvPixelStride = planes[1].bytesPerPixel;
-      List<int> uvBytes = <int>[];
-
-      for (int i = 0; i < height / 2; i++) {
-        for (int j = 0; j < width / 2; j++) {
-          uvBytes.add(uPlaneBytes[i * uvRowStride + j * uvPixelStride!]);
-          uvBytes.add(vPlaneBytes[i * uvRowStride + j * uvPixelStride]);
-        }
-      }
-
       int ySize = width * height;
       int uvSize = ySize ~/ 4;
       int totalSize = ySize + uvSize * 2;
@@ -37,7 +24,8 @@ class FormatConvert {
       byteData.setUint16(0, width, Endian.little);
       byteData.setUint16(2, height, Endian.little);
       yuvBytes.setAll(4, yPlaneBytes);
-      yuvBytes.setAll(ySize + 4, uvBytes);
+      yuvBytes.setAll(ySize + 4, uPlaneBytes);
+      yuvBytes.setAll(ySize + uvSize + 4, vPlaneBytes);
       return yuvBytes;
     } else if (image.format.group == ImageFormatGroup.bgra8888) {
       // BGRA_8888 格式

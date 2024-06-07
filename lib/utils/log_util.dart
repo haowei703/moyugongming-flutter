@@ -1,5 +1,3 @@
-import 'package:flutter/cupertino.dart';
-
 class LogUtil {
   static const _separator = "=";
   static const _split =
@@ -13,7 +11,7 @@ class LogUtil {
   static void init({required String title, required bool isDebug,required int limitLength}) {
     _title = title;
     _isDebug = isDebug;
-    _limitLength = limitLength??=_limitLength;
+    _limitLength = limitLength;
     _startLine = "$_split$_title$_split";
     var endLineStr = StringBuffer();
     var cnCharReg = RegExp("[\u4e00-\u9fa5]");
@@ -38,7 +36,7 @@ class LogUtil {
   }
 
   static void _log(String msg) {
-    print("$_startLine");
+    print(_startLine);
     _logEmpyLine();
     if(msg.length<_limitLength){
       print(msg);
@@ -46,7 +44,7 @@ class LogUtil {
       segmentationLog(msg);
     }
     _logEmpyLine();
-    print("$_endLine");
+    print(_endLine);
   }
 
   static void segmentationLog(String msg) {
