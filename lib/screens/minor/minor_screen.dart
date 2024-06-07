@@ -39,10 +39,12 @@ class _MinorPageState extends State<MinorPage> {
                           borderRadius: BorderRadius.all(Radius.circular(5)))),
                   onPressed: () {
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                const AudioEvalPage(evalMode: EvalMode.word)));
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const AudioEvalPage(evalMode: EvalMode.word),
+                      ),
+                    );
                   },
                   child: const Text("单词训练")),
               ElevatedButton(

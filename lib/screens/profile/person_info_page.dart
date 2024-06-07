@@ -171,7 +171,7 @@ class _PersonInfoScreenState extends State<PersonInfoScreen> {
   // sharded_preferences读取用户信息和设置信息
   Future<void> _readUserInfo() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userName = prefs.getString("userName");
+    String? userName = prefs.getString("username");
     String? phoneNumber = prefs.getString("phoneNumber");
 
     if (userName != null && phoneNumber != null) {

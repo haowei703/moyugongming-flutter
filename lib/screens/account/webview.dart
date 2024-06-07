@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class WebViewScreen extends StatefulWidget {
-  const WebViewScreen({Key? key, required this.title, required this.url})
-      : super(key: key);
+  const WebViewScreen({super.key, required this.title, required this.url});
 
   final String title;
 
@@ -26,7 +25,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: WebView(
+      body:WebView(
         initialUrl: widget.url,
         javascriptMode: JavascriptMode.unrestricted,
       ),

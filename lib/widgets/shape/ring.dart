@@ -43,7 +43,7 @@ class RingWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      size: const Size.square(100), // 适当调整大小
+      size: const Size.square(100),
       painter: RingPainter(color: color, strokeWidth: strokeWidth, innerRadius: innerRadius),
     );
   }

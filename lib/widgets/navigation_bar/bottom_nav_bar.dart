@@ -8,8 +8,7 @@ class BottomNavBar extends StatefulWidget {
   final List<TabIconData> tabIconDataList;
 
   const BottomNavBar(
-      {Key? key, required this.changeIndex, required this.tabIconDataList})
-      : super(key: key);
+      {super.key, required this.changeIndex, required this.tabIconDataList});
 
   @override
   State<StatefulWidget> createState() => _BottomNavBarState();
@@ -33,7 +32,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
             setState(() {
               tabIconData.isSelected = false;
             });
-          }else {
+          } else {
             tabIconData.isSelected = true;
           }
           return Expanded(

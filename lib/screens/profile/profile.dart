@@ -1,19 +1,12 @@
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:moyugongming/widgets/animation/slide_route.dart';
 import 'package:moyugongming/screens/account/login_screen.dart';
-import 'package:moyugongming/screens/profile/personinfo.dart';
+import 'package:moyugongming/screens/profile/person_info_page.dart';
 import 'package:moyugongming/screens/profile/setting.dart';
 import 'package:moyugongming/utils/log_util.dart';
-import 'package:moyugongming/widgets/button/transparent_button.dart';
 
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -128,17 +121,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                 onPressed: () async {
                                   await _navigatorPush(
                                       context, const LoginScreen());
-                                  if (_hasLogin) {
-                                    Fluttertoast.showToast(
-                                      msg: "登录成功",
-                                      toastLength: Toast.LENGTH_SHORT,
-                                      gravity: ToastGravity.CENTER,
-                                      timeInSecForIosWeb: 1,
-                                      backgroundColor: Colors.grey,
-                                      textColor: Colors.white,
-                                      fontSize: 16.0,
-                                    );
-                                  }
                                 },
                                 child: const Text(
                                   "登录",
@@ -292,7 +274,7 @@ class _ProfilePageState extends State<ProfilePage> {
     await _readUserInfo().then((userInfo) {
       if (userInfo != null) {
         setState(() {
-          _userName = userInfo['userName'];
+          _userName = userInfo['username'];
         });
       } else {
         setState(() {
@@ -305,19 +287,17 @@ class _ProfilePageState extends State<ProfilePage> {
 
   /// sharded_preferences读取用户信息和设置信息
   Future<Map<String, String>?> _readUserInfo() async {
-    Completer<Map<String, String>?> completer = Completer();
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userName = prefs.getString("userName");
+    String? userName = prefs.getString("username");
     LogUtil.init(title: "读取用户信息", isDebug: true, limitLength: 200);
-    LogUtil.d("userName:$userName");
+    LogUtil.d("username:$userName");
     if (userName != null) {
       _userName = userName;
       _hasLogin = true;
-      Map<String, String> userInfo = {"userName": userName};
-      completer.complete(userInfo);
+      Map<String, String> userInfo = {"username": userName};
+      return userInfo;
     } else {
-      completer.complete(null);
+      return null;
     }
-    return completer.future;
   }
 }

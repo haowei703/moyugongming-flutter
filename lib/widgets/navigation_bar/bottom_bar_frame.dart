@@ -19,14 +19,14 @@ class BottomBarFrame extends StatefulWidget {
   final bool isAcrylicEnabled;
 
   const BottomBarFrame({
-    Key? key,
+    super.key,
     required this.tabIconList,
     required this.pages,
     this.height = 80,
     this.isAcrylicEnabled = true,
     this.color = Colors.white,
     this.showNavItemText = true,
-  }) : super(key: key);
+  });
 
   @override
   State<StatefulWidget> createState() => _BottomBarFrameState();
