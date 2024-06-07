@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -7,18 +6,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:moyugongming/api/net/api_service.dart';
 import 'package:moyugongming/model/enums/evalmode.dart';
 import 'package:moyugongming/model/vo/eval_result.dart';
-import 'package:moyugongming/utils/http_client_utils.dart';
-import 'package:moyugongming/utils/log_util.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
-import 'package:moyugongming/widgets/animation/slide_route.dart';
 import '../../model/objects/mic_data.dart';
-import '../../widgets/dialog/custom_dialog.dart';
 
 class AudioEvalPage extends StatefulWidget {
   final EvalMode evalMode;
@@ -33,13 +29,14 @@ class _AudioEvalPageState extends State<AudioEvalPage> {
   late String _text;
   late List<String> _textList;
   late EvalMode _evalMode;
-  late String _token;
   late String _filePath;
   late EvalResult _evalResult;
+  int currentIndex = 0;
 
   late List<MicData> _micData;
   // 是否正在录音
   bool isRecording = false;
+  final ApiService apiService = ApiService();
 
   @override
   void initState() {
@@ -55,20 +52,11 @@ class _AudioEvalPageState extends State<AudioEvalPage> {
         suggestedScore: 0, pronAccuracy: 0, pronFluency: 0, words: []);
 
     // 准备录音
-    _readToken();
     createTempFile();
     _initializeRecorder();
     getPermissionStatus().then((value) {
       if (!value) {
-        Fluttertoast.showToast(
-          msg: "请在设置中打开录音权限！",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.grey,
-          textColor: Colors.white,
-          fontSize: 16.0,
-        );
+        _showToast("请在设置中打开录音权限！");
         Future.delayed(
             const Duration(seconds: 2), () => Navigator.pop(context));
       }
@@ -121,15 +109,7 @@ class _AudioEvalPageState extends State<AudioEvalPage> {
             bitRate: 16000,
             toFile: _filePath)
         .catchError((e) {
-      Fluttertoast.showToast(
-        msg: "请求超时",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.grey,
-        textColor: Colors.white,
-        fontSize: 16.0,
-      );
+      _showToast("请求超时");
     });
   }
 
@@ -262,6 +242,7 @@ class _AudioEvalPageState extends State<AudioEvalPage> {
                                   onTap: () {
                                     setState(() {
                                       _text = _textList[index];
+                                      currentIndex = index;
                                     });
                                   },
                                   child: Center(
@@ -325,53 +306,41 @@ class _AudioEvalPageState extends State<AudioEvalPage> {
 
   Future<void> _sendMessage() async {
     String url = _filePath;
-    String path = "api/audio";
     File tempFile = File(url);
-    List<int> fileBytes = await tempFile.readAsBytes();
-    String base64Str = base64Encode(fileBytes);
-    Map<String, String> headers = {'Content-Type': 'application/json'};
-    String body = jsonEncode(
-        {"audioData": base64Str, "evalMode": _evalMode.value, "text": "我"});
+    Uint8List fileBytes = await tempFile.readAsBytes();
     await _audioRecorder.deleteRecord(fileName: "temp.wav");
 
-    LogUtil.init(title: "测评结果", isDebug: true, limitLength: 50);
-    await HttpClientUtils.sendRequestAsync(path,
-        method: HttpMethod.POST,
-        token: _token,
-        headers: headers,
-        body: body, onSuccess: (response) {
-      Map<String, dynamic>? data = response['data'];
-      LogUtil.d(data);
-      if (data != null) {
-        setState(() {
-          _evalResult = EvalResult.fromJson(data);
-          LogUtil.d(_evalResult.suggestedScore);
-        });
-        if (_evalResult.suggestedScore >= 60) {
-          _showMessage(msg: "测评通过");
-        } else {
-          _showMessage(msg: "测评未通过");
-        }
-      }
-    }, onError: (error) {
-      LogUtil.d(error);
-    });
-  }
-
-  // 读取token信息
-  Future<void> _readToken() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString("token");
-    LogUtil.init(title: "读取token", isDebug: true, limitLength: 40);
+    String? token = await _readToken();
     if (token != null) {
-      _token = token;
-      LogUtil.d(token);
+      apiService
+          .evalAudio(
+              audioData: fileBytes, evalMode: _evalMode.value, text: _text)
+          .then((result) {
+        setState(() {
+          _evalResult = result;
+          if (_evalResult.suggestedScore > 60) {
+            _micData[currentIndex].isPassed = true;
+            _showToast("评测通过");
+          } else {
+            _showToast("评测未通过");
+          }
+        });
+      }).catchError((error) {
+        _showToast(error.toString());
+      });
     }
   }
 
-  void _showMessage({required String msg}) {
+  // 读取token信息
+  Future<String?> _readToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("token");
+    return token;
+  }
+
+  void _showToast(String message) {
     Fluttertoast.showToast(
-      msg: msg,
+      msg: message,
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.CENTER,
       timeInSecForIosWeb: 1,

@@ -1,16 +1,15 @@
+import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:moyugongming/widgets/animation/slide_route.dart';
 import 'package:moyugongming/screens/account/login_screen.dart';
-import 'package:moyugongming/utils/http_client_utils.dart';
 import 'package:moyugongming/widgets/button/transparent_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'camera_screen.dart';
-import '../../utils/log_util.dart';
-import 'dart:async';
+import 'package:moyugongming/utils/log_util.dart';
 
 class HomePage extends StatefulWidget {
   final String title;
@@ -164,10 +163,7 @@ class _HomePageState extends State<HomePage> {
   btnClicked({required Function onSuccess}) async {
     String? token = await _readToken();
     if (token != null) {
-      final state = await HttpClientUtils.checkNetworkState();
-      if (state) {
-        onSuccess(token);
-      }
+      onSuccess(token);
     } else {
       if (mounted) {
         _showDialog();
@@ -198,26 +194,23 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () async {
                     Navigator.pop(context);
                     Navigator.push(
-                            context, SlideRouteRight(page: const LoginScreen()))
-                        .then((_) {
-                      _readToken().then((userInfo) {
-                        if (userInfo != null) {
-                          Fluttertoast.showToast(
-                            msg: "登录成功",
-                            toastLength: Toast.LENGTH_SHORT,
-                            gravity: ToastGravity.CENTER,
-                            timeInSecForIosWeb: 1,
-                            backgroundColor: Colors.grey,
-                            textColor: Colors.white,
-                            fontSize: 16.0,
-                          );
-                        }
-                      });
-                    });
+                        context, SlideRouteRight(page: const LoginScreen()));
                   },
                   child: const Text('确定'),
                 ),
               ],
             ));
+  }
+
+  void _showToast(String message) {
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.CENTER,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.grey,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
   }
 }

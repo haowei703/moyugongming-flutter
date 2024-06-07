@@ -1,15 +1,14 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:moyugongming/model/vo/token.dart';
 import 'package:moyugongming/screens/account/webview.dart';
-
+import 'package:moyugongming/api/net/user_service.dart';
 import 'package:moyugongming/widgets/animation/slide_route.dart';
-import '../../utils/http_client_utils.dart';
-import '../../widgets/dialog/custom_dialog.dart';
+import 'package:moyugongming/widgets/dialog/custom_dialog.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -30,6 +29,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   int _time = 60;
   bool _isButtonDisabled = false;
 
+  final UserService userService = UserService();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,7 +40,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: Center(
         child: Container(
           alignment: Alignment.topCenter,
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,
@@ -54,31 +55,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _controller =
                       TextEditingController(text: _phoneNumber),
                   decoration: InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(vertical: 10.0),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 10.0),
                     hintText: '请输入手机号',
-                    prefixIcon: Icon(
+                    prefixIcon: const Icon(
                       Icons.phone_android_rounded,
                       color: Color.fromRGBO(77, 162, 249, 1.0),
                     ),
                     suffixIcon: IconButton(
-                      icon: Icon(Icons.close),
+                      icon: const Icon(Icons.close),
                       onPressed: () {
                         _controller?.clear();
                         _phoneNumber = "";
                       },
                     ),
-                    border: OutlineInputBorder(
+                    border: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(10.0)),
                       borderSide: BorderSide(color: Colors.grey),
                     ),
-                    focusedBorder: OutlineInputBorder(
+                    focusedBorder: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(10.0)),
                       borderSide: BorderSide(color: Colors.grey),
                     ),
                   ),
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               SizedBox(
                 height: 50,
                 child: TextFormField(
@@ -87,39 +88,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(vertical: 10.0),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 10.0),
                     hintText: '请输入验证码',
-                    prefixIcon: Icon(
+                    prefixIcon: const Icon(
                       Icons.security_rounded,
                       color: Color.fromRGBO(77, 162, 249, 1.0),
                     ),
                     suffixIcon: !_isButtonDisabled
                         ? TextButton(
-                            onPressed: () {
-                              if (_phoneNumber.length != 11) {
-                                String msg = "";
-                                if (_phoneNumber.length == 0) {
-                                  msg = "手机号不能为空";
-                                } else
-                                  msg = "手机号格式错误";
-                                Fluttertoast.showToast(
-                                  msg: msg,
-                                  toastLength: Toast.LENGTH_SHORT,
-                                  gravity: ToastGravity.CENTER,
-                                  timeInSecForIosWeb: 1,
-                                  backgroundColor: Colors.grey,
-                                  textColor: Colors.white,
-                                  fontSize: 16.0,
-                                );
-                              } else {
-                                setState(() {
-                                  _time = 60;
-                                  _isButtonDisabled = true;
-                                  _showTimer();
-                                });
-                                getSMSCode(_phoneNumber);
-                              }
-                            },
+                            onPressed: () => getSMSCode(_phoneNumber),
                             style: ButtonStyle(
                               overlayColor:
                                   MaterialStateProperty.resolveWith<Color>(
@@ -130,7 +107,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 return Colors.transparent;
                               }),
                             ),
-                            child: Text(
+                            child: const Text(
                               '获取验证码',
                               style: TextStyle(color: Colors.blue),
                             ),
@@ -143,22 +120,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               child: Text(
                                 "$_time秒后重发",
                                 textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 12),
+                                style: const TextStyle(fontSize: 12),
                               ),
                             ),
                           ),
-                    border: OutlineInputBorder(
+                    border: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(10.0)),
                       borderSide: BorderSide(color: Colors.grey),
                     ),
-                    focusedBorder: OutlineInputBorder(
+                    focusedBorder: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(10.0)),
                       borderSide: BorderSide(color: Colors.grey),
                     ),
                   ),
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               SizedBox(
                 height: 50,
                 child: TextFormField(
@@ -166,7 +143,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     _password = value;
                   },
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     contentPadding: EdgeInsets.symmetric(vertical: 10.0),
                     hintText: '请输入密码',
                     prefixIcon: Icon(
@@ -184,34 +161,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               SizedBox(
                 height: 40,
                 width: double.infinity,
                 child: ElevatedButton(
-                    onPressed: () {
-                      if (_phoneNumber == "" ||
-                          _code == "" ||
-                          _password == "") {
-                        String str = _phoneNumber == ""
-                            ? "手机号"
-                            : (_code == "" ? "验证码" : "密码");
-                        Fluttertoast.showToast(
-                          msg: "$str不能为空",
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.CENTER,
-                          timeInSecForIosWeb: 1,
-                          backgroundColor: Colors.grey,
-                          textColor: Colors.white,
-                          fontSize: 16.0,
-                        );
-                      } else {
-                        registerRequest(
-                            phoneNumber: _phoneNumber,
-                            password: _password,
-                            code: _code);
-                      }
-                    },
+                    onPressed: () => registerRequest(),
                     style: ElevatedButton.styleFrom(
                         fixedSize: const Size(300, 500),
                         backgroundColor:
@@ -225,7 +180,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     )),
               ),
-              SizedBox(height: 6),
+              const SizedBox(height: 6),
               SizedBox(
                 height: 40,
                 child: Row(
@@ -235,14 +190,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     RichText(
                       text: TextSpan(
                         text: '注册即视为同意',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.black,
                           fontSize: 12.0,
                         ),
                         children: [
                           TextSpan(
                             text: '《用户服务协议》',
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Colors.blue,
                             ),
                             recognizer: TapGestureRecognizer()
@@ -251,13 +206,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 Navigator.push(
                                     context,
                                     SlideRouteRight(
-                                        page: WebViewScreen(
+                                        page: const WebViewScreen(
                                       title: "用户协议",
-                                      url: "http://123.56.184.10",
+                                      url: "https://www.shiroha.love",
                                     )));
                               },
                           ),
-                          TextSpan(
+                          const TextSpan(
                             text: ' 和 ',
                             style: TextStyle(
                               color: Colors.black,
@@ -265,7 +220,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           TextSpan(
                             text: '《隐私政策》',
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Colors.blue,
                             ),
                             recognizer: TapGestureRecognizer()
@@ -274,9 +229,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 Navigator.push(
                                     context,
                                     SlideRouteRight(
-                                        page: WebViewScreen(
+                                        page: const WebViewScreen(
                                       title: "隐私政策",
-                                      url: "http://123.56.184.10/privacypolicy",
+                                      url: "https://www.shiroha.love/privacypolicy",
                                     )));
                               },
                           ),
@@ -312,78 +267,105 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   /// 获取验证码
   Future<void> getSMSCode(String phoneNumber) async {
-    String basePath = "user/sendSMS";
-    String path = "$basePath?phoneNumber=$phoneNumber";
-    Map<String, String> headers = {'Content-Type': 'application/json'};
-    HttpClientUtils.sendRequestAsync(path,
-        method: HttpMethod.GET, headers: headers, onSuccess: (_) {
-      Fluttertoast.showToast(msg: "发送成功");
-    }, onError: (error) {
-      if (error is HttpException) {
-        String msg = error.toString();
-        RegExp regExp = RegExp(r'Status code: (\d+), Response: (.+)');
-        Iterable<RegExpMatch> matches = regExp.allMatches(msg);
-        if (matches.isNotEmpty) {
-          RegExpMatch match = matches.first;
-          String? responseBody = match.group(2);
-          _showDialog(content: Text(responseBody!));
-        }
-      } else if (error is SocketException) {
-        _showDialog(
-            title: "网络未连接",
-            content: const Text(
-              "请检查网络设置",
-              style: TextStyle(fontSize: 16),
-            ));
+    // 检验
+    if (_phoneNumber.length != 11) {
+      String msg = "";
+      if (_phoneNumber.isEmpty) {
+        msg = "手机号不能为空";
+      } else {
+        msg = "手机号格式错误";
       }
-    });
+      Fluttertoast.showToast(
+        msg: msg,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      return;
+    }
+
+    if (await userService.sendSmsCode(_phoneNumber)) {
+      setState(() {
+        _time = 60;
+        _isButtonDisabled = true;
+        _showTimer();
+      });
+    } else {
+      _showDialog(
+        title: "网络未连接",
+        content: const Text(
+          "请检查网络设置",
+          style: TextStyle(fontSize: 16),
+        ),
+      );
+    }
   }
 
   // 注册请求
-  Future<void> registerRequest(
-      {required String phoneNumber,
-      required String password,
-      required String code}) async {
-    String path = 'user/register';
-    Map<String, String> headers = {'Content-Type': 'application/json'};
-    String body;
-    body = jsonEncode(
-        {"phoneNumber": phoneNumber, "code": code, "password": password});
-    HttpClientUtils.sendRequestAsync(path,
-        method: HttpMethod.POST,
-        headers: headers,
-        body: body,
-        onSuccess: (response) {
-
-        }, onError: (error) {
-      if (error is HttpException) {
-        String msg = error.toString();
-        RegExp regExp = RegExp(r'Status code: (\d+), Response: (.+)');
-        Iterable<RegExpMatch> matches = regExp.allMatches(msg);
-        if (matches.isNotEmpty) {
-          RegExpMatch match = matches.first;
-          String? responseBody = match.group(2);
-          _showDialog(content: Text(responseBody!));
-        }
-      } else if (error is SocketException) {
-        _showDialog(
-            title: "网络未连接",
-            content: const Text(
-              "请检查网络设置",
-              style: TextStyle(fontSize: 16),
-            ));
+  Future<void> registerRequest() async {
+    if (_phoneNumber == "" || _code == "" || _password == "") {
+      String str = _phoneNumber == "" ? "手机号" : (_code == "" ? "验证码" : "密码");
+      Fluttertoast.showToast(
+        msg: "$str不能为空",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    } else {
+      try {
+        JWT jwt = await userService.register(
+            phoneNumber: _phoneNumber, password: _password, code: _code);
+        _showToast(message: "注册成功");
+        _saveUserInfo(jwt: jwt).then((_) => pop());
+      } on AuthException catch (e) {
+        _showToast(message: e.message);
       }
-    });
+    }
+  }
+
+  void _showToast({required String message}) {
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.CENTER,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.grey,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
   }
 
   _showDialog(
       {String? title, required Widget content, VoidCallback? onClicked}) {
     showDialog(
-        context: context,
-        builder: (context) => CustomDialog(
-              title: title,
-              onClicked: onClicked,
-              content: content,
-            ));
+      context: context,
+      builder: (context) => CustomDialog(
+        title: title,
+        onClicked: onClicked,
+        content: content,
+      ),
+    );
+  }
+
+  /// sp写入token和用户信息
+  Future<void> _saveUserInfo({required JWT jwt}) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    prefs.setString("token", jwt.accessToken);
+    prefs.setString("uid", jwt.id);
+    prefs.setString("username", jwt.username);
+    prefs.setString("phoneNumber", _phoneNumber);
+  }
+
+  pop() {
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 }
